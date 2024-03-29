@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/constants.dart';
 
 class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
   const MapAppBar({super.key});
@@ -12,7 +13,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: const Padding(
         padding: EdgeInsets.all(10),
         child: Text(
-          'Trash Map',
+          appName,
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
       ),

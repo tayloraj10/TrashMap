@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:trash_map/screens/loading.dart';
 import 'package:provider/provider.dart';
-
 import 'models/app_data.dart';
+import 'models/constants.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -22,12 +27,21 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Trash Map',
+        title: appName,
         theme: ThemeData(
+          useMaterial3: true,
+          dialogTheme: const DialogTheme(
+            surfaceTintColor: Colors.white,
+          ),
+          appBarTheme: const AppBarTheme(
+              color: Color.fromARGB(255, 15, 111, 18),
+              foregroundColor: Colors.white),
+          primaryColor: const Color.fromARGB(255, 15, 111, 18),
           colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 15, 111, 18),
               primary: const Color.fromARGB(255, 15, 111, 18),
-              secondary: Colors.black),
+              secondary: Colors.black,
+              tertiary: Colors.red),
         ),
         home: const Scaffold(
           body: SafeArea(

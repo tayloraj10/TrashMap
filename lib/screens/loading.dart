@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trash_map/screens/map_page.dart';
 
+import '../models/constants.dart';
+
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
 
@@ -16,22 +18,25 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   Future<void> getData() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MapPage(),
-      ),
-    );
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MapPage(),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Trash Map',
+          Text(
+            appName,
             style: TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.w700,
@@ -39,7 +44,7 @@ class _LoadingPageState extends State<LoadingPage> {
           ),
           Stack(
             alignment: Alignment.center,
-            children: const [
+            children: [
               Icon(
                 Icons.delete,
                 size: 150,
