@@ -1,11 +1,12 @@
-import 'dart:async';
 import 'dart:developer';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
+import 'package:trash_map/components/map_text.dart';
+import 'package:trash_map/components/pin_confirmation.dart';
 
 class TrashMap extends StatefulWidget {
   const TrashMap({super.key});
@@ -17,12 +18,43 @@ class TrashMap extends StatefulWidget {
 class _TrashMapState extends State<TrashMap> {
   late GoogleMapController _controller;
   LatLng _currentPosition = const LatLng(0.0, 0.0);
+  late LatLng droppedPostiion;
   late BitmapDescriptor currentLocationMarkerIcon;
+  late BitmapDescriptor cleanMarkerIcon;
+  late BitmapDescriptor trashMarkerIcon;
+  bool addClean = false;
+  bool addTrash = false;
+  bool pinDropped = false;
+
+  late final Set<Marker> _markers = {
+    Marker(
+      markerId: const MarkerId('current_location'),
+      icon: currentLocationMarkerIcon,
+      position: _currentPosition,
+    ),
+  };
 
   @override
   void initState() {
     super.initState();
     _loadCustomMarker();
+    loadCleanups();
+  }
+
+  loadCleanups() async {
+    await FirebaseFirestore.instance
+        .collection("cleanups")
+        .where('active', isEqualTo: true)
+        .snapshots()
+        .forEach((element) {
+      for (var element in element.docs) {
+        _markers.add(Marker(
+          markerId: MarkerId('cleanup${element.id}'),
+          icon: cleanMarkerIcon,
+          position: LatLng(element.data()['lat'], element.data()['lng']),
+        ));
+      }
+    });
   }
 
   static const CameraPosition _kStart = CameraPosition(
@@ -44,10 +76,9 @@ class _TrashMapState extends State<TrashMap> {
         accuracy: LocationAccuracy.high,
         distanceFilter: 100,
       );
-      // ignore: unused_local_variable
-      StreamSubscription<Position> positionStream =
-          Geolocator.getPositionStream(locationSettings: locationSettings)
-              .listen((Position? position) {
+      Geolocator.getPositionStream(locationSettings: locationSettings)
+          .listen((Position? position) {
+        log(position.toString());
         setState(() {
           _currentPosition = LatLng(position!.latitude, position.longitude);
         });
@@ -62,24 +93,80 @@ class _TrashMapState extends State<TrashMap> {
   void _loadCustomMarker() async {
     // Load your custom marker icon here
     currentLocationMarkerIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(40, 40)), // Adjust the size if needed
-      'images/current-location.png', // Replace with your custom marker image path
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/current-location.png',
+    );
+    cleanMarkerIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/clean.png',
+    );
+    trashMarkerIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/trash.png',
     );
   }
 
+  clickClean() {
+    setState(() {
+      addClean = !addClean;
+      addTrash = false;
+    });
+  }
+
   newClean() {
-    log('clean');
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
-        return const CleanDialog();
+        return CleanDialog(
+          latlng: droppedPostiion,
+        );
       },
-    );
+    ).then((value) => successfulSubmit());
   }
 
-  newTrash() {
-    log('trash');
+  successfulSubmit() {
+    setState(() {
+      addClean = false;
+      addTrash = false;
+      pinDropped = false;
+    });
+  }
+
+  cancel() {
+    setState(() {
+      addClean = false;
+      addTrash = false;
+      pinDropped = false;
+      _markers.removeWhere(
+          (element) => element.markerId == const MarkerId('new_clean'));
+    });
+  }
+
+  clickTrash() {
+    setState(() {
+      addClean = false;
+      addTrash = !addTrash;
+    });
+  }
+
+  newTrash() {}
+
+  clickMap(LatLng position) {
+    if (addClean || addTrash) {
+      if (addClean) {
+        setState(() {
+          _markers.add(Marker(
+              markerId: const MarkerId('new_clean'),
+              icon: cleanMarkerIcon,
+              position: position,
+              draggable: true));
+          addClean = false;
+          pinDropped = true;
+          droppedPostiion = position;
+        });
+      }
+    }
   }
 
   @override
@@ -87,16 +174,13 @@ class _TrashMapState extends State<TrashMap> {
     return Stack(
       children: [
         GoogleMap(
+            onTap: ((position) {
+              clickMap(position);
+            }),
             initialCameraPosition: _kStart,
             markers: _currentPosition.latitude != 0.0 &&
                     _currentPosition.longitude != 0.0
-                ? {
-                    Marker(
-                      markerId: const MarkerId('current_location'),
-                      icon: currentLocationMarkerIcon,
-                      position: _currentPosition,
-                    ),
-                  }
+                ? _markers
                 : {},
             onMapCreated: (controller) {
               setState(() {
@@ -104,6 +188,19 @@ class _TrashMapState extends State<TrashMap> {
               });
               _getCurrentLocation();
             }),
+        if (addClean || addTrash)
+          MapText(
+            text: addClean
+                ? "Click map to add a cleanup location"
+                : addTrash
+                    ? "Click map to report trash"
+                    : "",
+          ),
+        if (pinDropped)
+          PinConfirmation(
+            submit: newClean,
+            cancel: cancel,
+          ),
         Positioned(
           top: 16,
           left: 16,
@@ -111,13 +208,16 @@ class _TrashMapState extends State<TrashMap> {
             children: [
               MapButton(
                 image: 'images/clean.png',
-                callback: newClean,
+                callback: clickClean,
                 tooltip: 'Add Cleanup',
+                stroke: addClean,
               ),
               MapButton(
-                  image: 'images/trash.png',
-                  callback: newTrash,
-                  tooltip: 'Report Trash')
+                image: 'images/trash.png',
+                callback: clickTrash,
+                tooltip: 'Report Trash',
+                stroke: addTrash,
+              )
             ],
           ),
         ),

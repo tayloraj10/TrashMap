@@ -33,10 +33,11 @@ class MyApp extends StatelessWidget {
           dialogTheme: const DialogTheme(
             surfaceTintColor: Colors.white,
           ),
+          cardTheme: const CardTheme(surfaceTintColor: Colors.white),
           appBarTheme: const AppBarTheme(
               color: Color.fromARGB(255, 15, 111, 18),
               foregroundColor: Colors.white),
-          primaryColor: const Color.fromARGB(255, 15, 111, 18),
+          primaryColor: const Color.fromARGB(255, 27, 48, 28),
           colorScheme: ColorScheme.fromSeed(
               seedColor: const Color.fromARGB(255, 15, 111, 18),
               primary: const Color.fromARGB(255, 15, 111, 18),
