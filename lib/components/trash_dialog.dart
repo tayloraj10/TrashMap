@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:trash_map/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
-class CleanDialog extends StatefulWidget {
+class TrashDialog extends StatefulWidget {
   final LatLng latlng;
-  const CleanDialog({super.key, required this.latlng});
+  const TrashDialog({super.key, required this.latlng});
 
   @override
-  State<CleanDialog> createState() => _CleanDialogState();
+  State<TrashDialog> createState() => _CleanDialogState();
 }
 
-class _CleanDialogState extends State<CleanDialog> {
+class _CleanDialogState extends State<TrashDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _groupController = TextEditingController();
-  final TextEditingController _bagsController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   late final DateTime _selectedDate;
 
@@ -49,28 +47,13 @@ class _CleanDialogState extends State<CleanDialog> {
               decoration: const InputDecoration(labelText: 'Location/Address'),
             ),
             TextFormField(
-              controller: _groupController,
-              decoration: const InputDecoration(labelText: 'Group Name'),
-            ),
-            TextFormField(
-              controller: _bagsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '# of Bags'),
-              validator: (value) {
-                if (value!.isEmpty || double.tryParse(value)! < 0) {
-                  return 'Please enter the # of bags cleaned up';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
               readOnly: true,
               controller: _dateController,
               keyboardType: TextInputType.datetime,
               decoration: const InputDecoration(labelText: 'Date'),
               validator: (value) {
                 if (value!.isEmpty) {
-                  return 'Please select the date of the cleanup';
+                  return 'Please select a date';
                 }
                 return null;
               },
@@ -96,19 +79,17 @@ class _CleanDialogState extends State<CleanDialog> {
           onPressed: () {
             // Validate form inputs
             if (_formKey.currentState!.validate()) {
-              Cleanup cleanupData = Cleanup(
+              TrashReport trashData = TrashReport(
                 lat: widget.latlng.latitude,
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
-                group: _groupController.text,
-                bags: double.tryParse(_bagsController.text)!,
                 date: DateTime.now(),
                 user: '',
                 uid: '',
               );
               FirebaseFirestore.instance
-                  .collection("cleanups")
-                  .add(cleanupData.toMap());
+                  .collection("trash")
+                  .add(trashData.toMap());
 
               // Close the dialog
               Navigator.of(context).pop();

@@ -6,6 +6,8 @@ class Cleanup {
   final double lat;
   final double lng;
   final bool active;
+  final String uid;
+  final String user;
 
   Cleanup(
       {this.location = '',
@@ -14,7 +16,9 @@ class Cleanup {
       this.active = true,
       required this.date,
       required this.lat,
-      required this.lng});
+      required this.lng,
+      this.uid = '',
+      this.user = ''});
 
   Map<String, dynamic> toMap() {
     return {
@@ -24,7 +28,9 @@ class Cleanup {
       'date': date,
       'lat': lat,
       'lng': lng,
-      'active': active
+      'active': active,
+      'uid': uid,
+      'user': user,
     };
   }
 
@@ -36,7 +42,9 @@ class Cleanup {
         date: map['date'],
         lat: map['lat'],
         lng: map['lng'],
-        active: map['active']);
+        active: map['active'],
+        uid: map['uid'],
+        user: map['user']);
   }
 }
 
@@ -46,13 +54,17 @@ class TrashReport {
   final double lat;
   final double lng;
   final bool active;
+  final String uid;
+  final String user;
 
   TrashReport(
       {this.location = '',
       this.active = true,
       required this.date,
       required this.lat,
-      required this.lng});
+      required this.lng,
+      this.uid = '',
+      this.user = ''});
 
   Map<String, dynamic> toMap() {
     return {
@@ -60,7 +72,9 @@ class TrashReport {
       'date': date,
       'lat': lat,
       'lng': lng,
-      'active': active
+      'active': active,
+      'uid': uid,
+      'user': user,
     };
   }
 
@@ -70,6 +84,8 @@ class TrashReport {
         date: map['date'],
         lat: map['lat'],
         lng: map['lng'],
-        active: map['active']);
+        active: map['active'],
+        uid: map['uid'],
+        user: map['user']);
   }
 }

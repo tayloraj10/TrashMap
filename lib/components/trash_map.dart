@@ -7,6 +7,9 @@ import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
+import 'package:trash_map/components/trash_dialog.dart';
+
+import 'marker_dialog.dart';
 
 class TrashMap extends StatefulWidget {
   const TrashMap({super.key});
@@ -19,6 +22,7 @@ class _TrashMapState extends State<TrashMap> {
   late GoogleMapController _controller;
   LatLng _currentPosition = const LatLng(0.0, 0.0);
   late LatLng droppedPostiion;
+  late String droppedType;
   late BitmapDescriptor currentLocationMarkerIcon;
   late BitmapDescriptor cleanMarkerIcon;
   late BitmapDescriptor trashMarkerIcon;
@@ -26,19 +30,27 @@ class _TrashMapState extends State<TrashMap> {
   bool addTrash = false;
   bool pinDropped = false;
 
-  late final Set<Marker> _markers = {
-    Marker(
-      markerId: const MarkerId('current_location'),
-      icon: currentLocationMarkerIcon,
-      position: _currentPosition,
-    ),
-  };
+  final Set<Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
-    _loadCustomMarker();
-    loadCleanups();
+    loadInitialData();
+  }
+
+  loadInitialData() async {
+    await _loadCustomMarker().then((value) => {loadCleanups(), loadTrash()});
+    await _getCurrentLocation().then((value) => {setCurrentLocationMarker()});
+  }
+
+  setCurrentLocationMarker() {
+    setState(() {
+      _markers.add(Marker(
+        markerId: const MarkerId('current_location'),
+        icon: currentLocationMarkerIcon,
+        position: _currentPosition,
+      ));
+    });
   }
 
   loadCleanups() async {
@@ -48,11 +60,46 @@ class _TrashMapState extends State<TrashMap> {
         .snapshots()
         .forEach((element) {
       for (var element in element.docs) {
-        _markers.add(Marker(
-          markerId: MarkerId('cleanup${element.id}'),
-          icon: cleanMarkerIcon,
-          position: LatLng(element.data()['lat'], element.data()['lng']),
-        ));
+        _markers.add(
+          Marker(
+            markerId: MarkerId('cleanup${element.id}'),
+            icon: cleanMarkerIcon,
+            position: LatLng(element.data()['lat'], element.data()['lng']),
+            onTap: (() => showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    // Return widget tree containing the AlertDialog
+                    return MarkerDialog(data: element.data(), type: 'Cleanup');
+                  },
+                )),
+          ),
+        );
+      }
+    });
+  }
+
+  loadTrash() async {
+    await FirebaseFirestore.instance
+        .collection("trash")
+        .where('active', isEqualTo: true)
+        .snapshots()
+        .forEach((element) {
+      for (var element in element.docs) {
+        _markers.add(
+          Marker(
+            markerId: MarkerId('trash${element.id}'),
+            icon: trashMarkerIcon,
+            position: LatLng(element.data()['lat'], element.data()['lng']),
+            onTap: (() => showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    // Return widget tree containing the AlertDialog
+                    return MarkerDialog(
+                        data: element.data(), type: 'Trash Report');
+                  },
+                )),
+          ),
+        );
       }
     });
   }
@@ -62,7 +109,7 @@ class _TrashMapState extends State<TrashMap> {
     zoom: 12,
   );
 
-  void _getCurrentLocation() async {
+  Future<void> _getCurrentLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
@@ -82,15 +129,15 @@ class _TrashMapState extends State<TrashMap> {
         setState(() {
           _currentPosition = LatLng(position!.latitude, position.longitude);
         });
-        _controller.animateCamera(CameraUpdate.newLatLngZoom(
-            LatLng(position!.latitude, position.longitude), 15.6));
+        // _controller.animateCamera(CameraUpdate.newLatLngZoom(
+        //     LatLng(position!.latitude, position.longitude), 15.6));
       });
     } catch (e) {
       log("Error: $e");
     }
   }
 
-  void _loadCustomMarker() async {
+  Future<void> _loadCustomMarker() async {
     // Load your custom marker icon here
     currentLocationMarkerIcon = await BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(size: Size(40, 40)),
@@ -125,24 +172,6 @@ class _TrashMapState extends State<TrashMap> {
     ).then((value) => successfulSubmit());
   }
 
-  successfulSubmit() {
-    setState(() {
-      addClean = false;
-      addTrash = false;
-      pinDropped = false;
-    });
-  }
-
-  cancel() {
-    setState(() {
-      addClean = false;
-      addTrash = false;
-      pinDropped = false;
-      _markers.removeWhere(
-          (element) => element.markerId == const MarkerId('new_clean'));
-    });
-  }
-
   clickTrash() {
     setState(() {
       addClean = false;
@@ -150,7 +179,17 @@ class _TrashMapState extends State<TrashMap> {
     });
   }
 
-  newTrash() {}
+  newTrash() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // Return widget tree containing the AlertDialog
+        return TrashDialog(
+          latlng: droppedPostiion,
+        );
+      },
+    ).then((value) => successfulSubmit());
+  }
 
   clickMap(LatLng position) {
     if (addClean || addTrash) {
@@ -164,9 +203,51 @@ class _TrashMapState extends State<TrashMap> {
           addClean = false;
           pinDropped = true;
           droppedPostiion = position;
+          droppedType = 'cleanup';
+        });
+      }
+      if (addTrash) {
+        setState(() {
+          _markers.add(Marker(
+              markerId: const MarkerId('new_trash'),
+              icon: trashMarkerIcon,
+              position: position,
+              draggable: true));
+          addTrash = false;
+          pinDropped = true;
+          droppedPostiion = position;
+          droppedType = 'trash';
         });
       }
     }
+  }
+
+  newSubmit() {
+    if (droppedType == 'cleanup') {
+      newClean();
+    } else if (droppedType == 'trash') {
+      newTrash();
+    }
+  }
+
+  cancel() {
+    setState(() {
+      addClean = false;
+      addTrash = false;
+      pinDropped = false;
+      _markers.removeWhere(
+          (element) => element.markerId == const MarkerId('new_clean'));
+      _markers.removeWhere(
+          (element) => element.markerId == const MarkerId('new_trash'));
+    });
+  }
+
+  successfulSubmit() {
+    setState(() {
+      addClean = false;
+      addTrash = false;
+      pinDropped = false;
+    });
   }
 
   @override
@@ -198,7 +279,7 @@ class _TrashMapState extends State<TrashMap> {
           ),
         if (pinDropped)
           PinConfirmation(
-            submit: newClean,
+            submit: newSubmit,
             cancel: cancel,
           ),
         Positioned(
