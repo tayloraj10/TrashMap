@@ -6,8 +6,7 @@ class MarkerDialog extends StatelessWidget {
   final Map data;
   final String type;
   const MarkerDialog({super.key, required this.data, required this.type});
-  static const TextStyle leadingStyle = TextStyle(fontSize: 16);
-  static const TextStyle mainStyle = TextStyle(fontSize: 18);
+  static const TextStyle style = TextStyle(fontSize: 16);
 
   @override
   Widget build(BuildContext context) {
@@ -19,32 +18,28 @@ class MarkerDialog extends StatelessWidget {
         children: [
           if (data['location'] != null && data['location'] != '')
             MarkerText(
-              leadingText: "Location: ",
-              mainText: data['location'],
-              leadingStyle: leadingStyle,
-              mainStyle: mainStyle,
-            ),
+                tooltip: "Location",
+                text: data['location'],
+                style: style,
+                icon: Icons.pin_drop),
           if (data['group'] != null && data['group'] != '')
             MarkerText(
-              leadingText: "Group: ",
-              mainText: data['group'],
-              leadingStyle: leadingStyle,
-              mainStyle: mainStyle,
-            ),
+                tooltip: "Group",
+                text: data['group'],
+                style: style,
+                icon: Icons.group),
           if (data['bags'] != null)
             MarkerText(
-              leadingText: "Bags Cleaned: ",
-              mainText: data['bags'].toString(),
-              leadingStyle: leadingStyle,
-              mainStyle: mainStyle,
-            ),
+                tooltip: "Bags Cleaned",
+                text: data['bags'].toString(),
+                style: style,
+                icon: Icons.restore_from_trash),
           if (data['date'] != null)
             MarkerText(
-              leadingText: "Date: ",
-              mainText: DateFormat('yyyy-MM-dd').format(data['date'].toDate()),
-              leadingStyle: leadingStyle,
-              mainStyle: mainStyle,
-            ),
+                tooltip: "Date",
+                text: DateFormat('yyyy-MM-dd').format(data['date'].toDate()),
+                style: style,
+                icon: Icons.date_range),
         ],
       ),
     );
