@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:trash_map/models/models.dart';
@@ -6,7 +7,8 @@ import 'package:intl/intl.dart';
 
 class CleanDialog extends StatefulWidget {
   final LatLng latlng;
-  const CleanDialog({super.key, required this.latlng});
+  final FirebaseAuth auth;
+  const CleanDialog({super.key, required this.latlng, required this.auth});
 
   @override
   State<CleanDialog> createState() => _CleanDialogState();
@@ -103,8 +105,8 @@ class _CleanDialogState extends State<CleanDialog> {
                 group: _groupController.text,
                 bags: double.tryParse(_bagsController.text)!,
                 date: DateTime.now(),
-                user: '',
-                uid: '',
+                user: widget.auth.currentUser!.displayName!,
+                uid: widget.auth.currentUser!.uid,
               );
               FirebaseFirestore.instance
                   .collection("cleanups")

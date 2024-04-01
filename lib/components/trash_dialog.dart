@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -5,8 +6,9 @@ import 'package:trash_map/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TrashDialog extends StatefulWidget {
+  final FirebaseAuth auth;
   final LatLng latlng;
-  const TrashDialog({super.key, required this.latlng});
+  const TrashDialog({super.key, required this.latlng, required this.auth});
 
   @override
   State<TrashDialog> createState() => _CleanDialogState();
@@ -84,8 +86,8 @@ class _CleanDialogState extends State<TrashDialog> {
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
                 date: DateTime.now(),
-                user: '',
-                uid: '',
+                user: widget.auth.currentUser!.displayName!,
+                uid: widget.auth.currentUser!.uid,
               );
               FirebaseFirestore.instance
                   .collection("trash")

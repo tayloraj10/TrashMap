@@ -170,6 +170,7 @@ class _TrashMapState extends State<TrashMap> {
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
         return CleanDialog(
+          auth: widget.auth,
           latlng: droppedPostiion,
         );
       },
@@ -191,6 +192,7 @@ class _TrashMapState extends State<TrashMap> {
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
         return TrashDialog(
+          auth: widget.auth,
           latlng: droppedPostiion,
         );
       },
