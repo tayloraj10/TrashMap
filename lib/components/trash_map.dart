@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -12,7 +13,8 @@ import 'package:trash_map/components/trash_dialog.dart';
 import 'marker_dialog.dart';
 
 class TrashMap extends StatefulWidget {
-  const TrashMap({super.key});
+  final FirebaseAuth auth;
+  const TrashMap({super.key, required this.auth});
 
   @override
   State<TrashMap> createState() => _TrashMapState();
@@ -154,10 +156,12 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickClean() {
-    setState(() {
-      addClean = !addClean;
-      addTrash = false;
-    });
+    if (widget.auth.currentUser != null) {
+      setState(() {
+        addClean = !addClean;
+        addTrash = false;
+      });
+    }
   }
 
   newClean() {
@@ -173,10 +177,12 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickTrash() {
-    setState(() {
-      addClean = false;
-      addTrash = !addTrash;
-    });
+    if (widget.auth.currentUser != null) {
+      setState(() {
+        addClean = false;
+        addTrash = !addTrash;
+      });
+    }
   }
 
   newTrash() {

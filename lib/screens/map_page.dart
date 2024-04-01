@@ -15,8 +15,10 @@ class MapPage extends StatelessWidget {
         auth: auth,
       ),
       drawer: const MapDrawer(),
-      body: const SafeArea(
-        child: TrashMap(),
+      body: SafeArea(
+        child: TrashMap(
+          auth: auth,
+        ),
       ),
     );
   }
