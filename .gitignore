@@ -1,5 +1,6 @@
 /web/index.html
 firebase_options.dart
+.firebase
 
 # Miscellaneous
 *.class
