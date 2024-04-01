@@ -31,13 +31,15 @@ environment:
 dependencies:
   cloud_firestore: ^4.15.10
   cupertino_icons: ^1.0.2
+  firebase_auth: ^4.18.0
   firebase_core: ^2.27.2
   flutter:
     sdk: flutter
+  flutterfire_ui: ^0.4.3+20
   geolocator: ^11.0.0
   google_maps_flutter: ^2.6.0
   google_maps_flutter_web: ^0.5.6+2
-  intl: ^0.19.0
+  intl: ^0.18.1
   pointer_interceptor: ^0.10.1
   provider: ^6.1.2
 

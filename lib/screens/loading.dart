@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:trash_map/models/constants.dart';
+import 'package:trash_map/screens/login.dart';
 import 'package:trash_map/screens/map_page.dart';
-
-import '../models/constants.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
@@ -11,19 +12,41 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
+  late FirebaseAuth auth;
+
   @override
   void initState() {
     super.initState();
-    getData();
+    checkLoggedIn();
   }
 
-  Future<void> getData() async {
-    await Future.delayed(const Duration(seconds: 1));
+  checkLoggedIn() {
+    auth = FirebaseAuth.instance;
+    auth.authStateChanges().listen((User? user) {
+      if (user == null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Login(
+              auth: FirebaseAuth.instance,
+            ),
+          ),
+        );
+      } else {
+        getData(user);
+      }
+    });
+  }
+
+  Future<void> getData(User user) async {
+    // await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const MapPage(),
+          builder: (context) => MapPage(
+            auth: auth,
+          ),
         ),
       );
     }
