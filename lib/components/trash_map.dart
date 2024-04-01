@@ -259,15 +259,12 @@ class _TrashMapState extends State<TrashMap> {
               clickMap(position);
             }),
             initialCameraPosition: _kStart,
-            markers: _currentPosition.latitude != 0.0 &&
-                    _currentPosition.longitude != 0.0
-                ? _markers
-                : {},
-            onMapCreated: (controller) {
+            markers: _markers,
+            onMapCreated: (controller) async {
               setState(() {
                 _controller = controller;
               });
-              _getCurrentLocation();
+              await loadInitialData();
             }),
         if (addClean || addTrash)
           MapText(
