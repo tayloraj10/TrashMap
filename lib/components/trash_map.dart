@@ -71,7 +71,12 @@ class _TrashMapState extends State<TrashMap> {
                   context: context,
                   builder: (BuildContext context) {
                     // Return widget tree containing the AlertDialog
-                    return MarkerDialog(data: element.data(), type: 'Cleanup');
+                    return MarkerDialog(
+                      data: element.data(),
+                      id: element.id,
+                      type: 'Cleanup',
+                      auth: widget.auth,
+                    );
                   },
                 )),
           ),
@@ -97,7 +102,11 @@ class _TrashMapState extends State<TrashMap> {
                   builder: (BuildContext context) {
                     // Return widget tree containing the AlertDialog
                     return MarkerDialog(
-                        data: element.data(), type: 'Trash Report');
+                      data: element.data(),
+                      id: element.id,
+                      type: 'Trash Report',
+                      auth: widget.auth,
+                    );
                   },
                 )),
           ),
@@ -110,6 +119,35 @@ class _TrashMapState extends State<TrashMap> {
     target: LatLng(40.7798, -73.9676),
     zoom: 12,
   );
+
+  panToPosition() {
+    if (_currentPosition.latitude != 0 && _currentPosition.longitude != 0) {
+      _controller.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(_currentPosition.latitude, _currentPosition.longitude), 15.6));
+    }
+  }
+
+  void zoomToMarkers() {
+    List<LatLng> positions = [];
+    for (var element in _markers) {
+      positions.add(element.position);
+    }
+    final southwestLat = positions.map((p) => p.latitude).reduce(
+        (value, element) => value < element ? value : element); // smallest
+    final southwestLon = positions
+        .map((p) => p.longitude)
+        .reduce((value, element) => value < element ? value : element);
+    final northeastLat = positions.map((p) => p.latitude).reduce(
+        (value, element) => value > element ? value : element); // biggest
+    final northeastLon = positions
+        .map((p) => p.longitude)
+        .reduce((value, element) => value > element ? value : element);
+    _controller.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+            southwest: LatLng(southwestLat, southwestLon),
+            northeast: LatLng(northeastLat, northeastLon)),
+        50));
+  }
 
   Future<void> _getCurrentLocation() async {
     try {
@@ -156,12 +194,10 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickClean() {
-    if (widget.auth.currentUser != null) {
-      setState(() {
-        addClean = !addClean;
-        addTrash = false;
-      });
-    }
+    setState(() {
+      addClean = !addClean;
+      addTrash = false;
+    });
   }
 
   newClean() {
@@ -178,12 +214,10 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickTrash() {
-    if (widget.auth.currentUser != null) {
-      setState(() {
-        addClean = false;
-        addTrash = !addTrash;
-      });
-    }
+    setState(() {
+      addClean = false;
+      addTrash = !addTrash;
+    });
   }
 
   newTrash() {
@@ -287,26 +321,55 @@ class _TrashMapState extends State<TrashMap> {
             submit: newSubmit,
             cancel: cancel,
           ),
+        if (widget.auth.currentUser != null)
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Column(
+              children: [
+                MapButton(
+                  image: 'images/clean.png',
+                  callback: clickClean,
+                  tooltip: 'Add Cleanup',
+                  stroke: addClean,
+                ),
+                MapButton(
+                  image: 'images/trash.png',
+                  callback: clickTrash,
+                  tooltip: 'Report Trash',
+                  stroke: addTrash,
+                )
+              ],
+            ),
+          ),
         Positioned(
-          top: 16,
-          left: 16,
-          child: Column(
-            children: [
-              MapButton(
-                image: 'images/clean.png',
-                callback: clickClean,
-                tooltip: 'Add Cleanup',
-                stroke: addClean,
+          bottom: 120,
+          right: 10,
+          child: Tooltip(
+            message: 'Zoom to Location',
+            child: Container(
+              color: Colors.white,
+              child: IconButton(
+                icon: const Icon(Icons.location_searching),
+                onPressed: () => {panToPosition()},
               ),
-              MapButton(
-                image: 'images/trash.png',
-                callback: clickTrash,
-                tooltip: 'Report Trash',
-                stroke: addTrash,
-              )
-            ],
+            ),
           ),
         ),
+        Positioned(
+          bottom: 175,
+          right: 10,
+          child: Tooltip(
+            message: 'Zoom to Data',
+            child: Container(
+              color: Colors.white,
+              child: IconButton(
+                icon: const Icon(Icons.zoom_in_map),
+                onPressed: () => {zoomToMarkers()},
+              ),
+            ),
+          ),
+        )
       ],
     );
   }

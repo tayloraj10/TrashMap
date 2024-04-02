@@ -1,12 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:trash_map/components/marker_text.dart';
 
 class MarkerDialog extends StatelessWidget {
   final Map data;
+  final String id;
   final String type;
-  const MarkerDialog({super.key, required this.data, required this.type});
+  final FirebaseAuth auth;
+  const MarkerDialog(
+      {super.key,
+      required this.data,
+      required this.type,
+      required this.auth,
+      required this.id});
   static const TextStyle style = TextStyle(fontSize: 16);
+
+  markCleaned(Map data, context) {
+    FirebaseFirestore.instance.collection("trash").doc(id).update({
+      'active': false,
+      'completed_uid': auth.currentUser!.uid,
+      'completed_user': auth.currentUser!.displayName,
+    });
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +58,13 @@ class MarkerDialog extends StatelessWidget {
                 text: DateFormat('yyyy-MM-dd').format(data['date'].toDate()),
                 style: style,
                 icon: Icons.date_range),
+          if (type == 'Trash Report' && auth.currentUser != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: ElevatedButton(
+                  onPressed: () => {markCleaned(data, context)},
+                  child: const Text("Mark As Cleaned")),
+            ),
         ],
       ),
     );

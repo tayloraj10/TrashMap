@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:trash_map/models/constants.dart';
-import 'package:trash_map/screens/login.dart';
 import 'package:trash_map/screens/map_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -23,22 +22,21 @@ class _LoadingPageState extends State<LoadingPage> {
   checkLoggedIn() {
     auth = FirebaseAuth.instance;
     auth.authStateChanges().listen((User? user) {
-      if (user == null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Login(
-              auth: FirebaseAuth.instance,
-            ),
-          ),
-        );
-      } else {
-        getData(user);
-      }
+      // if (user == null) {
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(
+      //       builder: (context) => Login(
+      //         auth: FirebaseAuth.instance,
+      //       ),
+      //     ),
+      //   );
+      // } else {
+      getData(auth);
     });
   }
 
-  Future<void> getData(User user) async {
+  Future<void> getData(FirebaseAuth auth) async {
     // await Future.delayed(const Duration(seconds: 1));
     if (mounted) {
       Navigator.push(

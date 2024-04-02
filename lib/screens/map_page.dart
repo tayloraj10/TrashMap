@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trash_map/components/map_app_bar.dart';
-import 'package:trash_map/components/map_drawer.dart';
 import 'package:trash_map/components/trash_map.dart';
 
 class MapPage extends StatelessWidget {
@@ -14,7 +13,8 @@ class MapPage extends StatelessWidget {
       appBar: MapAppBar(
         auth: auth,
       ),
-      drawer: const MapDrawer(),
+      // drawer: const MapDrawer(),
+
       body: SafeArea(
         child: TrashMap(
           auth: auth,

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:trash_map/screens/login.dart';
 import 'package:trash_map/screens/profile.dart';
 import '../models/constants.dart';
 
@@ -25,6 +26,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: false,
       title: const Padding(
         padding: EdgeInsets.all(10),
         child: Text(
@@ -43,7 +45,17 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                           builder: (context) => Profile(auth: auth)),
                     )
                   },
-              child: Text(getProfileName(auth))),
+              child: auth.currentUser == null
+                  ? GestureDetector(
+                      child: const Text('Log In'),
+                      onTap: () => {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Login(auth: auth)),
+                            )
+                          })
+                  : Text(getProfileName(auth))),
         )
       ],
     );
