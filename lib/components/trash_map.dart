@@ -1,16 +1,15 @@
 import 'dart:developer';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
 import 'package:trash_map/components/trash_dialog.dart';
-
-import 'marker_dialog.dart';
+import 'package:trash_map/models/app_data.dart';
 
 class TrashMap extends StatefulWidget {
   final FirebaseAuth auth;
@@ -22,97 +21,35 @@ class TrashMap extends StatefulWidget {
 
 class _TrashMapState extends State<TrashMap> {
   late GoogleMapController _controller;
-  LatLng _currentPosition = const LatLng(0.0, 0.0);
   late LatLng droppedPostiion;
   late String droppedType;
-  late BitmapDescriptor currentLocationMarkerIcon;
-  late BitmapDescriptor cleanMarkerIcon;
-  late BitmapDescriptor trashMarkerIcon;
   bool addClean = false;
   bool addTrash = false;
   bool pinDropped = false;
 
-  final Set<Marker> _markers = {};
+  // final Set<Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
-    loadInitialData();
   }
 
-  loadInitialData() async {
-    await _loadCustomMarker().then((value) => {loadCleanups(), loadTrash()});
-    await _getCurrentLocation().then((value) => {setCurrentLocationMarker()});
+  loadPosition() async {
+    panToPosition();
+    // await _loadCustomMarker().then((value) => {loadCleanups(), loadTrash()});
+    await getCurrentLocation().then((value) => {setCurrentLocationMarker()});
+    getLocationStream();
   }
 
   setCurrentLocationMarker() {
     setState(() {
-      _markers.add(Marker(
+      Provider.of<AppData>(context, listen: false).addMarker(Marker(
         markerId: const MarkerId('current_location'),
-        icon: currentLocationMarkerIcon,
-        position: _currentPosition,
+        icon: Provider.of<AppData>(context, listen: false).getIcons['current'],
+        position: Provider.of<AppData>(context, listen: false).getLatLng,
       ));
     });
-  }
-
-  loadCleanups() async {
-    await FirebaseFirestore.instance
-        .collection("cleanups")
-        .where('active', isEqualTo: true)
-        .snapshots()
-        .forEach((element) {
-      for (var element in element.docs) {
-        _markers.add(
-          Marker(
-            markerId: MarkerId('cleanup${element.id}'),
-            icon: cleanMarkerIcon,
-            position: LatLng(element.data()['lat'], element.data()['lng']),
-            onTap: (() => showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    // Return widget tree containing the AlertDialog
-                    return MarkerDialog(
-                      data: element.data(),
-                      id: element.id,
-                      type: 'Cleanup',
-                      auth: widget.auth,
-                    );
-                  },
-                )),
-          ),
-        );
-      }
-    });
-  }
-
-  loadTrash() async {
-    await FirebaseFirestore.instance
-        .collection("trash")
-        .where('active', isEqualTo: true)
-        .snapshots()
-        .forEach((element) {
-      for (var element in element.docs) {
-        _markers.add(
-          Marker(
-            markerId: MarkerId('trash${element.id}'),
-            icon: trashMarkerIcon,
-            position: LatLng(element.data()['lat'], element.data()['lng']),
-            onTap: (() => showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    // Return widget tree containing the AlertDialog
-                    return MarkerDialog(
-                      data: element.data(),
-                      id: element.id,
-                      type: 'Trash Report',
-                      auth: widget.auth,
-                    );
-                  },
-                )),
-          ),
-        );
-      }
-    });
+    panToPosition();
   }
 
   static const CameraPosition _kStart = CameraPosition(
@@ -121,15 +58,17 @@ class _TrashMapState extends State<TrashMap> {
   );
 
   panToPosition() {
-    if (_currentPosition.latitude != 0 && _currentPosition.longitude != 0) {
+    LatLng position = Provider.of<AppData>(context, listen: false).getLatLng;
+    if (position.latitude != 0 && position.longitude != 0) {
       _controller.animateCamera(CameraUpdate.newLatLngZoom(
-          LatLng(_currentPosition.latitude, _currentPosition.longitude), 15.6));
+          LatLng(position.latitude, position.longitude), 15.6));
     }
   }
 
   void zoomToMarkers() {
     List<LatLng> positions = [];
-    for (var element in _markers) {
+    for (var element
+        in Provider.of<AppData>(context, listen: false).getMarkers) {
       positions.add(element.position);
     }
     final southwestLat = positions.map((p) => p.latitude).reduce(
@@ -149,48 +88,31 @@ class _TrashMapState extends State<TrashMap> {
         50));
   }
 
-  Future<void> _getCurrentLocation() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
-      });
+  Future<void> getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best,
+    );
+    if (mounted) {
+      Provider.of<AppData>(context, listen: false).updateLatLng(position);
       _controller.animateCamera(CameraUpdate.newLatLngZoom(
-          LatLng(position.latitude, position.longitude), 15.6));
-      const LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 100,
-      );
-      Geolocator.getPositionStream(locationSettings: locationSettings)
-          .listen((Position? position) {
-        log(position.toString());
-        setState(() {
-          _currentPosition = LatLng(position!.latitude, position.longitude);
-        });
-        // _controller.animateCamera(CameraUpdate.newLatLngZoom(
-        //     LatLng(position!.latitude, position.longitude), 15.6));
-      });
-    } catch (e) {
-      log("Error: $e");
+          Provider.of<AppData>(context, listen: false).getLatLng, 15.6));
     }
   }
 
-  Future<void> _loadCustomMarker() async {
-    // Load your custom marker icon here
-    currentLocationMarkerIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(40, 40)),
-      'images/current-location.png',
+  Future<void> getLocationStream() async {
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.best,
+      distanceFilter: 10,
     );
-    cleanMarkerIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(40, 40)),
-      'images/clean.png',
-    );
-    trashMarkerIcon = await BitmapDescriptor.fromAssetImage(
-      const ImageConfiguration(size: Size(40, 40)),
-      'images/trash.png',
-    );
+    Geolocator.getPositionStream(locationSettings: locationSettings)
+        .listen((Position? position) {
+      log(position.toString());
+      setState(() {
+        Provider.of<AppData>(context, listen: false).updateLatLng(position!);
+      });
+      // _controller.animateCamera(CameraUpdate.newLatLngZoom(
+      //     Provider.of<AppData>(context, listen: false).getPosition, 15.6));
+    });
   }
 
   clickClean() {
@@ -237,9 +159,10 @@ class _TrashMapState extends State<TrashMap> {
     if (addClean || addTrash) {
       if (addClean) {
         setState(() {
-          _markers.add(Marker(
+          Provider.of<AppData>(context, listen: false).addMarker(Marker(
               markerId: const MarkerId('new_clean'),
-              icon: cleanMarkerIcon,
+              icon: Provider.of<AppData>(context, listen: false)
+                  .getIcons['cleanup'],
               position: position,
               draggable: true));
           addClean = false;
@@ -250,9 +173,10 @@ class _TrashMapState extends State<TrashMap> {
       }
       if (addTrash) {
         setState(() {
-          _markers.add(Marker(
+          Provider.of<AppData>(context, listen: false).addMarker(Marker(
               markerId: const MarkerId('new_trash'),
-              icon: trashMarkerIcon,
+              icon: Provider.of<AppData>(context, listen: false)
+                  .getIcons['trash'],
               position: position,
               draggable: true));
           addTrash = false;
@@ -277,9 +201,9 @@ class _TrashMapState extends State<TrashMap> {
       addClean = false;
       addTrash = false;
       pinDropped = false;
-      _markers.removeWhere(
+      Provider.of<AppData>(context, listen: false).getMarkers.removeWhere(
           (element) => element.markerId == const MarkerId('new_clean'));
-      _markers.removeWhere(
+      Provider.of<AppData>(context, listen: false).getMarkers.removeWhere(
           (element) => element.markerId == const MarkerId('new_trash'));
     });
   }
@@ -301,12 +225,13 @@ class _TrashMapState extends State<TrashMap> {
               clickMap(position);
             }),
             initialCameraPosition: _kStart,
-            markers: _markers,
+            // markers: _markers,
+            markers: Provider.of<AppData>(context, listen: false).getMarkers,
             onMapCreated: (controller) async {
               setState(() {
                 _controller = controller;
               });
-              await loadInitialData();
+              await loadPosition();
             }),
         if (addClean || addTrash)
           MapText(

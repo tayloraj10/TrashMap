@@ -58,12 +58,12 @@ class _CleanDialogState extends State<CleanDialog> {
               controller: _bagsController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: '# of Bags'),
-              validator: (value) {
-                if (value!.isEmpty || double.tryParse(value)! < 0) {
-                  return 'Please enter the # of bags cleaned up';
-                }
-                return null;
-              },
+              // validator: (value) {
+              //   if (value!.isEmpty || double.tryParse(value)! < 0) {
+              //     return 'Please enter the # of bags cleaned up';
+              //   }
+              //   return null;
+              // },
             ),
             TextFormField(
               readOnly: true,
@@ -103,7 +103,9 @@ class _CleanDialogState extends State<CleanDialog> {
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
                 group: _groupController.text,
-                bags: double.tryParse(_bagsController.text)!,
+                bags: _bagsController.text == ''
+                    ? 0
+                    : double.tryParse(_bagsController.text)!,
                 date: DateTime.now(),
                 user: widget.auth.currentUser!.displayName!,
                 uid: widget.auth.currentUser!.uid,

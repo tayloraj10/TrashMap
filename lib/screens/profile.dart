@@ -17,6 +17,18 @@ class Profile extends StatelessWidget {
           Expanded(
               child: ProfileScreen(
             auth: auth,
+            actions: [
+              SignedOutAction((context) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MapPage(
+                      auth: auth,
+                    ),
+                  ),
+                );
+              }),
+            ],
             providerConfigs: const [
               PhoneProviderConfiguration(),
               GoogleProviderConfiguration(
