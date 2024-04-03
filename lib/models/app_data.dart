@@ -22,6 +22,11 @@ class AppData extends ChangeNotifier {
     return markers;
   }
 
+  void removeMarker(String markerID) {
+    markers.removeWhere((element) => element.markerId == MarkerId(markerID));
+    notifyListeners();
+  }
+
   void addMarker(Marker marker) {
     markers.add(marker);
     notifyListeners();

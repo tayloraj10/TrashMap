@@ -23,7 +23,7 @@ class MarkerDialog extends StatelessWidget {
       'completed_uid': auth.currentUser!.uid,
       'completed_user': auth.currentUser!.displayName,
     });
-    Navigator.pop(context);
+    Navigator.pop(context, 'trash$id');
   }
 
   @override

@@ -112,10 +112,11 @@ class _CleanDialogState extends State<CleanDialog> {
               );
               FirebaseFirestore.instance
                   .collection("cleanups")
-                  .add(cleanupData.toMap());
-
-              // Close the dialog
-              Navigator.of(context).pop();
+                  .add(cleanupData.toMap())
+                  .then((value) => {
+                        Navigator.pop(
+                            context, {'id': value.id, 'type': 'cleanup'})
+                      });
             }
           },
           child: const Text('Submit'),

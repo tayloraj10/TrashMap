@@ -91,10 +91,11 @@ class _CleanDialogState extends State<TrashDialog> {
               );
               FirebaseFirestore.instance
                   .collection("trash")
-                  .add(trashData.toMap());
-
-              // Close the dialog
-              Navigator.of(context).pop();
+                  .add(trashData.toMap())
+                  .then((value) => {
+                        Navigator.pop(
+                            context, {'id': value.id, 'type': 'trash'})
+                      });
             }
           },
           child: const Text('Submit'),

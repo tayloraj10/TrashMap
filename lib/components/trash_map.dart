@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
+import 'package:trash_map/components/marker_dialog.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
 import 'package:trash_map/components/trash_dialog.dart';
 import 'package:trash_map/models/app_data.dart';
@@ -132,7 +134,8 @@ class _TrashMapState extends State<TrashMap> {
           latlng: droppedPostiion,
         );
       },
-    ).then((value) => successfulSubmit());
+    ).then((value) =>
+        {if (value != null) successfulSubmit(value['id'], value['type'])});
   }
 
   clickTrash() {
@@ -152,7 +155,8 @@ class _TrashMapState extends State<TrashMap> {
           latlng: droppedPostiion,
         );
       },
-    ).then((value) => successfulSubmit());
+    ).then((value) =>
+        {if (value != null) successfulSubmit(value['id'], value['type'])});
   }
 
   clickMap(LatLng position) {
@@ -164,7 +168,7 @@ class _TrashMapState extends State<TrashMap> {
               icon: Provider.of<AppData>(context, listen: false)
                   .getIcons['cleanup'],
               position: position,
-              draggable: true));
+              draggable: false));
           addClean = false;
           pinDropped = true;
           droppedPostiion = position;
@@ -178,7 +182,7 @@ class _TrashMapState extends State<TrashMap> {
               icon: Provider.of<AppData>(context, listen: false)
                   .getIcons['trash'],
               position: position,
-              draggable: true));
+              draggable: false));
           addTrash = false;
           pinDropped = true;
           droppedPostiion = position;
@@ -201,19 +205,81 @@ class _TrashMapState extends State<TrashMap> {
       addClean = false;
       addTrash = false;
       pinDropped = false;
-      Provider.of<AppData>(context, listen: false).getMarkers.removeWhere(
-          (element) => element.markerId == const MarkerId('new_clean'));
-      Provider.of<AppData>(context, listen: false).getMarkers.removeWhere(
-          (element) => element.markerId == const MarkerId('new_trash'));
+      Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
+      Provider.of<AppData>(context, listen: false).removeMarker('new_trash');
     });
   }
 
-  successfulSubmit() {
+  successfulSubmit(String newID, String type) {
     setState(() {
       addClean = false;
       addTrash = false;
       pinDropped = false;
+      if (type == 'cleanup') {
+        Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
+
+        FirebaseFirestore.instance
+            .collection("cleanups")
+            .doc(newID)
+            .get()
+            .then((value) => {
+                  Provider.of<AppData>(context, listen: false).addMarker(
+                    Marker(
+                      markerId: MarkerId('cleanup${value.id}'),
+                      icon: Provider.of<AppData>(context, listen: false)
+                          .getIcons['cleanup'],
+                      position:
+                          LatLng(value.data()!['lat'], value.data()!['lng']),
+                      onTap: (() => showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              // Return widget tree containing the AlertDialog
+                              return MarkerDialog(
+                                data: value.data()!,
+                                id: value.id,
+                                type: 'Cleanup',
+                                auth: widget.auth,
+                              );
+                            },
+                          )),
+                    ),
+                  )
+                });
+      } else if (type == 'trash') {
+        Provider.of<AppData>(context, listen: false).removeMarker('new_trash');
+        FirebaseFirestore.instance
+            .collection("trash")
+            .doc(newID)
+            .get()
+            .then((value) => {
+                  Provider.of<AppData>(context, listen: false).addMarker(
+                    Marker(
+                      markerId: MarkerId('trash${value.id}'),
+                      icon: Provider.of<AppData>(context, listen: false)
+                          .getIcons['trash'],
+                      position:
+                          LatLng(value.data()!['lat'], value.data()!['lng']),
+                      onTap: (() => showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              // Return widget tree containing the AlertDialog
+                              return MarkerDialog(
+                                data: value.data()!,
+                                id: value.id,
+                                type: 'Trash Report',
+                                auth: widget.auth,
+                              );
+                            },
+                          ).then((value) => hideCleanedTrash(value))),
+                    ),
+                  )
+                });
+      }
     });
+  }
+
+  hideCleanedTrash(String markerId) {
+    Provider.of<AppData>(context, listen: false).removeMarker(markerId);
   }
 
   @override
@@ -226,7 +292,7 @@ class _TrashMapState extends State<TrashMap> {
             }),
             initialCameraPosition: _kStart,
             // markers: _markers,
-            markers: Provider.of<AppData>(context, listen: false).getMarkers,
+            markers: Provider.of<AppData>(context, listen: true).getMarkers,
             onMapCreated: (controller) async {
               setState(() {
                 _controller = controller;

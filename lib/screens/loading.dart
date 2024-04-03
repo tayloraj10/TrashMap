@@ -122,11 +122,15 @@ class _LoadingPageState extends State<LoadingPage> {
                                 auth: auth,
                               );
                             },
-                          )),
+                          ).then((value) => hideCleanedTrash(value))),
                     ),
                   )
                 }
             });
+  }
+
+  hideCleanedTrash(String markerID) {
+    Provider.of<AppData>(context, listen: false).removeMarker(markerID);
   }
 
   @override
