@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:trash_map/components/marker_text.dart';
+import 'package:trash_map/models/constants.dart';
 
 class MarkerDialog extends StatelessWidget {
   final Map data;
@@ -55,7 +55,7 @@ class MarkerDialog extends StatelessWidget {
           if (data['date'] != null)
             MarkerText(
                 tooltip: "Date",
-                text: DateFormat('yyyy-MM-dd').format(data['date'].toDate()),
+                text: timestampToString(data['date']),
                 style: style,
                 icon: Icons.date_range),
           if (type == 'Trash Report' && auth.currentUser != null)

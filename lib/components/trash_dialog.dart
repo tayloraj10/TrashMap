@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:trash_map/models/constants.dart';
 import 'package:trash_map/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -18,7 +18,13 @@ class _CleanDialogState extends State<TrashDialog> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  late final DateTime _selectedDate;
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _dateController.text = dateToString(_selectedDate);
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -30,7 +36,7 @@ class _CleanDialogState extends State<TrashDialog> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+        _dateController.text = dateToString(_selectedDate);
       });
     }
   }
@@ -85,7 +91,7 @@ class _CleanDialogState extends State<TrashDialog> {
                 lat: widget.latlng.latitude,
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
-                date: DateTime.now(),
+                date: stringToDate(_dateController.text),
                 user: widget.auth.currentUser!.displayName!,
                 uid: widget.auth.currentUser!.uid,
               );

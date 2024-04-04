@@ -5,8 +5,9 @@ import 'package:trash_map/firebase_options.dart';
 import 'package:trash_map/screens/map_page.dart';
 
 class Login extends StatelessWidget {
-  final FirebaseAuth auth;
-  const Login({super.key, required this.auth});
+  const Login({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class Login extends StatelessWidget {
         body: Column(children: [
           Expanded(
               child: SignInScreen(
-            auth: auth,
+            auth: FirebaseAuth.instance,
             providerConfigs: const [
               EmailProviderConfiguration(),
               PhoneProviderConfiguration(),
@@ -30,7 +31,7 @@ class Login extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => MapPage(
-                      auth: auth,
+                      auth: FirebaseAuth.instance,
                     ),
                   ),
                 );

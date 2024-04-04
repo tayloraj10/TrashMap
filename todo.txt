@@ -1,0 +1,9 @@
+move auth to global state
+
+load cleanups and trash into global state, change to stream
+
+sync data managment with map using marker global state
+
+different icons for new submission
+
+fix issue with submission stream not rebulding correctly

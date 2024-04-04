@@ -22,14 +22,11 @@ class TrashMap extends StatefulWidget {
 }
 
 class _TrashMapState extends State<TrashMap> {
-  late GoogleMapController _controller;
   late LatLng droppedPostiion;
   late String droppedType;
   bool addClean = false;
   bool addTrash = false;
   bool pinDropped = false;
-
-  // final Set<Marker> _markers = {};
 
   @override
   void initState() {
@@ -62,8 +59,10 @@ class _TrashMapState extends State<TrashMap> {
   panToPosition() {
     LatLng position = Provider.of<AppData>(context, listen: false).getLatLng;
     if (position.latitude != 0 && position.longitude != 0) {
-      _controller.animateCamera(CameraUpdate.newLatLngZoom(
-          LatLng(position.latitude, position.longitude), 15.6));
+      Provider.of<AppData>(context, listen: false)
+          .getMapController
+          .animateCamera(CameraUpdate.newLatLngZoom(
+              LatLng(position.latitude, position.longitude), 15.6));
     }
   }
 
@@ -83,11 +82,12 @@ class _TrashMapState extends State<TrashMap> {
     final northeastLon = positions
         .map((p) => p.longitude)
         .reduce((value, element) => value > element ? value : element);
-    _controller.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-            southwest: LatLng(southwestLat, southwestLon),
-            northeast: LatLng(northeastLat, northeastLon)),
-        50));
+    Provider.of<AppData>(context, listen: false).getMapController.animateCamera(
+        CameraUpdate.newLatLngBounds(
+            LatLngBounds(
+                southwest: LatLng(southwestLat, southwestLon),
+                northeast: LatLng(northeastLat, northeastLon)),
+            50));
   }
 
   Future<void> getCurrentLocation() async {
@@ -96,8 +96,10 @@ class _TrashMapState extends State<TrashMap> {
     );
     if (mounted) {
       Provider.of<AppData>(context, listen: false).updateLatLng(position);
-      _controller.animateCamera(CameraUpdate.newLatLngZoom(
-          Provider.of<AppData>(context, listen: false).getLatLng, 15.6));
+      Provider.of<AppData>(context, listen: false)
+          .getMapController
+          .animateCamera(CameraUpdate.newLatLngZoom(
+              Provider.of<AppData>(context, listen: false).getLatLng, 15.6));
     }
   }
 
@@ -295,7 +297,8 @@ class _TrashMapState extends State<TrashMap> {
             markers: Provider.of<AppData>(context, listen: true).getMarkers,
             onMapCreated: (controller) async {
               setState(() {
-                _controller = controller;
+                Provider.of<AppData>(context, listen: false)
+                    .updateMapController(controller);
               });
               await loadPosition();
             }),

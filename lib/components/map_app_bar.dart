@@ -1,15 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_map/models/app_data.dart';
 import 'package:trash_map/screens/login.dart';
 import 'package:trash_map/screens/profile.dart';
 import '../models/constants.dart';
 
 class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final FirebaseAuth auth;
-  const MapAppBar({super.key, required this.auth});
+  MapAppBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   getProfileName(FirebaseAuth auth) {
     String name = '';
@@ -27,12 +30,23 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
-      title: const Padding(
-        padding: EdgeInsets.all(10),
-        child: Text(
-          appName,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-        ),
+      title: Row(
+        children: [
+          if (auth.currentUser != null)
+            IconButton(
+                onPressed: () => {
+                      Provider.of<AppData>(context, listen: false)
+                          .toggleShowPanel(),
+                    },
+                icon: const Icon(Icons.menu)),
+          const SizedBox(
+            width: 10,
+          ),
+          const Text(
+            appName,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+          ),
+        ],
       ),
       actions: [
         Padding(
@@ -52,7 +66,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => Login(auth: auth)),
+                                  builder: (context) => const Login()),
                             )
                           })
                   : Text(getProfileName(auth))),

@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:trash_map/models/constants.dart';
 import 'package:trash_map/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 class CleanDialog extends StatefulWidget {
   final LatLng latlng;
@@ -20,7 +21,13 @@ class _CleanDialogState extends State<CleanDialog> {
   final TextEditingController _groupController = TextEditingController();
   final TextEditingController _bagsController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  late final DateTime _selectedDate;
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _dateController.text = dateToString(_selectedDate);
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -32,7 +39,7 @@ class _CleanDialogState extends State<CleanDialog> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+        _dateController.text = dateToString(_selectedDate);
       });
     }
   }
@@ -55,28 +62,29 @@ class _CleanDialogState extends State<CleanDialog> {
               decoration: const InputDecoration(labelText: 'Group Name'),
             ),
             TextFormField(
-              controller: _bagsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: '# of Bags'),
-              // validator: (value) {
-              //   if (value!.isEmpty || double.tryParse(value)! < 0) {
-              //     return 'Please enter the # of bags cleaned up';
-              //   }
-              //   return null;
-              // },
-            ),
+                controller: _bagsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: '# of Bags'),
+                // validator: (value) {
+                //   if (value!.isEmpty || double.tryParse(value)! < 0) {
+                //     return 'Please enter the # of bags cleaned up';
+                //   }
+                //   return null;
+                // },
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ]),
             TextFormField(
-              readOnly: true,
-              controller: _dateController,
-              keyboardType: TextInputType.datetime,
-              decoration: const InputDecoration(labelText: 'Date'),
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return 'Please select the date of the cleanup';
-                }
-                return null;
-              },
-            ),
+                readOnly: true,
+                controller: _dateController,
+                keyboardType: TextInputType.datetime,
+                decoration: const InputDecoration(labelText: 'Date'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please select the date of the cleanup';
+                  }
+                  return null;
+                }),
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: ElevatedButton(
@@ -106,7 +114,7 @@ class _CleanDialogState extends State<CleanDialog> {
                 bags: _bagsController.text == ''
                     ? 0
                     : double.tryParse(_bagsController.text)!,
-                date: DateTime.now(),
+                date: stringToDate(_dateController.text),
                 user: widget.auth.currentUser!.displayName!,
                 uid: widget.auth.currentUser!.uid,
               );
