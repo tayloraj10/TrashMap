@@ -43,7 +43,7 @@ class MarkerDialog extends StatelessWidget {
                 text: data['group'],
                 style: style,
                 icon: Icons.group),
-          if (data['bags'] != null)
+          if (data['bags'] != null && data['bags'] != 0)
             MarkerText(
                 tooltip: "Bags Cleaned",
                 text: data['bags'].toString(),

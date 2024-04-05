@@ -17,7 +17,6 @@ class _MapDrawerState extends State<MapDrawer> {
       .where('active', isEqualTo: true)
       .orderBy('date', descending: true)
       .snapshots();
-
   final Stream<QuerySnapshot> _trashStream = FirebaseFirestore.instance
       .collection('trash')
       .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
@@ -49,6 +48,7 @@ class _MapDrawerState extends State<MapDrawer> {
             ),
           ),
           StreamBuilder(
+            key: UniqueKey(),
             stream: _cleanupsStream,
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -62,6 +62,7 @@ class _MapDrawerState extends State<MapDrawer> {
               } else {
                 // final data = snapshot.data
                 return ListView(
+                  key: UniqueKey(),
                   shrinkWrap: true,
                   children:
                       snapshot.data!.docs.map((DocumentSnapshot document) {
@@ -86,6 +87,7 @@ class _MapDrawerState extends State<MapDrawer> {
             ),
           ),
           StreamBuilder(
+            key: UniqueKey(),
             stream: _trashStream,
             builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -99,6 +101,7 @@ class _MapDrawerState extends State<MapDrawer> {
               } else {
                 // final data = snapshot.data;
                 return ListView(
+                  key: UniqueKey(),
                   shrinkWrap: true,
                   children:
                       snapshot.data!.docs.map((DocumentSnapshot document) {
