@@ -6,9 +6,8 @@ import 'package:trash_map/models/models.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TrashDialog extends StatefulWidget {
-  final FirebaseAuth auth;
   final LatLng latlng;
-  const TrashDialog({super.key, required this.latlng, required this.auth});
+  const TrashDialog({super.key, required this.latlng});
 
   @override
   State<TrashDialog> createState() => _CleanDialogState();
@@ -19,6 +18,7 @@ class _CleanDialogState extends State<TrashDialog> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -92,8 +92,8 @@ class _CleanDialogState extends State<TrashDialog> {
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
                 date: stringToDate(_dateController.text),
-                user: widget.auth.currentUser!.displayName!,
-                uid: widget.auth.currentUser!.uid,
+                user: auth.currentUser!.displayName!,
+                uid: auth.currentUser!.uid,
               );
               FirebaseFirestore.instance
                   .collection("trash")

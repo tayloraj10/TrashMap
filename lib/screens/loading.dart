@@ -16,12 +16,11 @@ class LoadingPage extends StatefulWidget {
 }
 
 class _LoadingPageState extends State<LoadingPage> {
-  late FirebaseAuth auth;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
-    auth = FirebaseAuth.instance;
     loadData();
   }
 
@@ -33,9 +32,7 @@ class _LoadingPageState extends State<LoadingPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MapPage(
-            auth: auth,
-          ),
+          builder: (context) => MapPage(),
         ),
       );
     }
@@ -87,7 +84,6 @@ class _LoadingPageState extends State<LoadingPage> {
                                 data: element.data(),
                                 id: element.id,
                                 type: 'Cleanup',
-                                auth: auth,
                               );
                             },
                           )),
@@ -119,7 +115,6 @@ class _LoadingPageState extends State<LoadingPage> {
                                 data: element.data(),
                                 id: element.id,
                                 type: 'Trash Report',
-                                auth: auth,
                               );
                             },
                           ).then((value) => hideCleanedTrash(value))),

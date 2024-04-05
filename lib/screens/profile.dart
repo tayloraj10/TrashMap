@@ -5,8 +5,8 @@ import 'package:trash_map/firebase_options.dart';
 import 'package:trash_map/screens/map_page.dart';
 
 class Profile extends StatelessWidget {
-  final FirebaseAuth auth;
-  const Profile({super.key, required this.auth});
+  Profile({super.key});
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +22,7 @@ class Profile extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MapPage(
-                      auth: auth,
-                    ),
+                    builder: (context) => MapPage(),
                   ),
                 );
               }),
@@ -42,9 +40,7 @@ class Profile extends StatelessWidget {
                   onPressed: (() => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MapPage(
-                            auth: auth,
-                          ),
+                          builder: (context) => MapPage(),
                         ),
                       )),
                   child: const Text('Home'))

@@ -106,11 +106,10 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                         title: 'Date',
                         controller: _dateController,
                         keyboardType: TextInputType.datetime),
-                    if (widget.type == 'cleanups')
-                      PropertyTile(
-                        title: 'Location',
-                        controller: _locationController,
-                      ),
+                    PropertyTile(
+                      title: 'Location',
+                      controller: _locationController,
+                    ),
                     if (widget.type == 'cleanups')
                       PropertyTile(
                         title: 'Group',

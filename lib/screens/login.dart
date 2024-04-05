@@ -30,9 +30,7 @@ class Login extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MapPage(
-                      auth: FirebaseAuth.instance,
-                    ),
+                    builder: (context) => MapPage(),
                   ),
                 );
               }),

@@ -14,8 +14,7 @@ import 'package:trash_map/components/trash_dialog.dart';
 import 'package:trash_map/models/app_data.dart';
 
 class TrashMap extends StatefulWidget {
-  final FirebaseAuth auth;
-  const TrashMap({super.key, required this.auth});
+  const TrashMap({super.key});
 
   @override
   State<TrashMap> createState() => _TrashMapState();
@@ -27,6 +26,7 @@ class _TrashMapState extends State<TrashMap> {
   bool addClean = false;
   bool addTrash = false;
   bool pinDropped = false;
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -132,7 +132,6 @@ class _TrashMapState extends State<TrashMap> {
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
         return CleanDialog(
-          auth: widget.auth,
           latlng: droppedPostiion,
         );
       },
@@ -153,7 +152,6 @@ class _TrashMapState extends State<TrashMap> {
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
         return TrashDialog(
-          auth: widget.auth,
           latlng: droppedPostiion,
         );
       },
@@ -240,7 +238,6 @@ class _TrashMapState extends State<TrashMap> {
                                 data: value.data()!,
                                 id: value.id,
                                 type: 'Cleanup',
-                                auth: widget.auth,
                               );
                             },
                           )),
@@ -269,7 +266,6 @@ class _TrashMapState extends State<TrashMap> {
                                 data: value.data()!,
                                 id: value.id,
                                 type: 'Trash Report',
-                                auth: widget.auth,
                               );
                             },
                           ).then((value) => hideCleanedTrash(value))),
@@ -315,7 +311,7 @@ class _TrashMapState extends State<TrashMap> {
             submit: newSubmit,
             cancel: cancel,
           ),
-        if (widget.auth.currentUser != null)
+        if (auth.currentUser != null)
           Positioned(
             top: 16,
             left: 16,

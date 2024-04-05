@@ -8,14 +8,11 @@ class MarkerDialog extends StatelessWidget {
   final Map data;
   final String id;
   final String type;
-  final FirebaseAuth auth;
-  const MarkerDialog(
-      {super.key,
-      required this.data,
-      required this.type,
-      required this.auth,
-      required this.id});
+  MarkerDialog(
+      {super.key, required this.data, required this.type, required this.id});
   static const TextStyle style = TextStyle(fontSize: 16);
+
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   markCleaned(Map data, context) {
     FirebaseFirestore.instance.collection("trash").doc(id).update({

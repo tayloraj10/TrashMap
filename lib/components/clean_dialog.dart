@@ -8,14 +8,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CleanDialog extends StatefulWidget {
   final LatLng latlng;
-  final FirebaseAuth auth;
-  const CleanDialog({super.key, required this.latlng, required this.auth});
+  const CleanDialog({super.key, required this.latlng});
 
   @override
   State<CleanDialog> createState() => _CleanDialogState();
 }
 
 class _CleanDialogState extends State<CleanDialog> {
+  final FirebaseAuth auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _groupController = TextEditingController();
@@ -115,8 +115,8 @@ class _CleanDialogState extends State<CleanDialog> {
                     ? 0
                     : double.tryParse(_bagsController.text)!,
                 date: stringToDate(_dateController.text),
-                user: widget.auth.currentUser!.displayName!,
-                uid: widget.auth.currentUser!.uid,
+                user: auth.currentUser!.displayName!,
+                uid: auth.currentUser!.uid,
               );
               FirebaseFirestore.instance
                   .collection("cleanups")

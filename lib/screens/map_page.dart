@@ -7,8 +7,8 @@ import 'package:trash_map/components/trash_map.dart';
 import 'package:trash_map/models/app_data.dart';
 
 class MapPage extends StatelessWidget {
-  final FirebaseAuth auth;
-  const MapPage({super.key, required this.auth});
+  MapPage({super.key});
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -19,10 +19,8 @@ class MapPage extends StatelessWidget {
           children: [
             if (Provider.of<AppData>(context, listen: true).getShowPanel)
               const MapDrawer(),
-            Expanded(
-              child: TrashMap(
-                auth: auth,
-              ),
+            const Expanded(
+              child: TrashMap(),
             ),
           ],
         ),
