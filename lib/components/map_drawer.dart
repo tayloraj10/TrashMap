@@ -62,6 +62,8 @@ class _MapDrawerState extends State<MapDrawer> {
               } else {
                 // final data = snapshot.data
                 return ListView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  primary: false,
                   key: UniqueKey(),
                   shrinkWrap: true,
                   children:
@@ -101,6 +103,8 @@ class _MapDrawerState extends State<MapDrawer> {
               } else {
                 // final data = snapshot.data;
                 return ListView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  primary: false,
                   key: UniqueKey(),
                   shrinkWrap: true,
                   children:
