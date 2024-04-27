@@ -68,26 +68,31 @@ class _TrashMapState extends State<TrashMap> {
 
   void zoomToMarkers() {
     List<LatLng> positions = [];
-    for (var element
-        in Provider.of<AppData>(context, listen: false).getMarkers) {
-      positions.add(element.position);
+    if (Provider.of<AppData>(context, listen: false).getMarkers.length > 1) {
+      for (var element
+          in Provider.of<AppData>(context, listen: false).getMarkers) {
+        if (element.markerId != const MarkerId('current_location')) {
+          positions.add(element.position);
+        }
+      }
+      final southwestLat = positions.map((p) => p.latitude).reduce(
+          (value, element) => value < element ? value : element); // smallest
+      final southwestLon = positions
+          .map((p) => p.longitude)
+          .reduce((value, element) => value < element ? value : element);
+      final northeastLat = positions.map((p) => p.latitude).reduce(
+          (value, element) => value > element ? value : element); // biggest
+      final northeastLon = positions
+          .map((p) => p.longitude)
+          .reduce((value, element) => value > element ? value : element);
+      Provider.of<AppData>(context, listen: false)
+          .getMapController
+          .animateCamera(CameraUpdate.newLatLngBounds(
+              LatLngBounds(
+                  southwest: LatLng(southwestLat, southwestLon),
+                  northeast: LatLng(northeastLat, northeastLon)),
+              20));
     }
-    final southwestLat = positions.map((p) => p.latitude).reduce(
-        (value, element) => value < element ? value : element); // smallest
-    final southwestLon = positions
-        .map((p) => p.longitude)
-        .reduce((value, element) => value < element ? value : element);
-    final northeastLat = positions.map((p) => p.latitude).reduce(
-        (value, element) => value > element ? value : element); // biggest
-    final northeastLon = positions
-        .map((p) => p.longitude)
-        .reduce((value, element) => value > element ? value : element);
-    Provider.of<AppData>(context, listen: false).getMapController.animateCamera(
-        CameraUpdate.newLatLngBounds(
-            LatLngBounds(
-                southwest: LatLng(southwestLat, southwestLon),
-                northeast: LatLng(northeastLat, northeastLon)),
-            50));
   }
 
   Future<void> getCurrentLocation() async {
