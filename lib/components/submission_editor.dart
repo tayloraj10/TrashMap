@@ -22,6 +22,7 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _groupController = TextEditingController();
   final TextEditingController _bagsController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
 
   @override
@@ -36,6 +37,7 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
     if (widget.type == 'cleanups') {
       _groupController.text = widget.data['group'];
       _bagsController.text = widget.data['bags'].toString();
+      _weightController.text = widget.data['weight'].toString();
     }
   }
 
@@ -52,7 +54,8 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
         'date': stringToDate(_dateController.text),
         'location': _locationController.text,
         'group': _groupController.text,
-        'bags': double.tryParse(_bagsController.text)
+        'bags': double.tryParse(_bagsController.text),
+        'weight': double.tryParse(_weightController.text)
       });
     } else if (widget.type == 'trash') {
       FirebaseFirestore.instance.collection(widget.type).doc(id).update({
@@ -71,10 +74,19 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
           onChanged: () => {updateData(widget.id)},
           key: _formKey,
           child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0), // Set border radius
+              side: const BorderSide(
+                color: Colors.grey, // Set border color
+                width: 1, // Set border width
+              ),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(2),
               child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
                   direction: Axis.horizontal,
                   // shrinkWrap: true,
                   // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -98,12 +110,12 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                                                     widget.data['lng']),
                                                 18))
                                   },
-                              icon: const Icon(Icons.location_searching)),
+                              icon: const Icon(Icons.location_searching))
                         ],
                       ),
                     ),
                     PropertyTile(
-                        title: 'Date',
+                        title: 'Change Date',
                         controller: _dateController,
                         keyboardType: TextInputType.datetime),
                     PropertyTile(
@@ -120,6 +132,11 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                           title: '# of Bags',
                           controller: _bagsController,
                           keyboardType: TextInputType.number),
+                    if (widget.type == 'cleanups')
+                      PropertyTile(
+                          title: 'Pounds of Trash Cleaned',
+                          controller: _weightController,
+                          keyboardType: TextInputType.number),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
@@ -128,7 +145,7 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                             'Delete',
                             style: TextStyle(color: Colors.red),
                           )),
-                    )
+                    ),
                   ]),
             ),
           ),

@@ -15,12 +15,24 @@ class LoadingPage extends StatefulWidget {
   State<LoadingPage> createState() => _LoadingPageState();
 }
 
-class _LoadingPageState extends State<LoadingPage> {
+class _LoadingPageState extends State<LoadingPage>
+    with SingleTickerProviderStateMixin {
   final FirebaseAuth auth = FirebaseAuth.instance;
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(
+      begin: 0,
+      end: 100,
+    ).animate(_controller);
     loadData();
   }
 
@@ -130,25 +142,42 @@ class _LoadingPageState extends State<LoadingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          const Text(
             appName,
             style: TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.w700,
-            ),
+                fontSize: 40, fontWeight: FontWeight.w700, color: primaryColor),
           ),
           Stack(
             alignment: Alignment.center,
             children: [
-              Icon(
-                Icons.delete,
-                size: 150,
+              Positioned(
+                bottom: 150,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(
+                        0,
+                        _animation.value,
+                      ),
+                      child: const Icon(
+                        Icons.shopping_bag,
+                        size: 50,
+                        color: Colors.green,
+                      ),
+                    );
+                  },
+                ),
               ),
-              CircularProgressIndicator()
+              Padding(
+                padding: const EdgeInsets.only(top: 50),
+                child: Icon(Icons.delete,
+                    size: 150, color: Colors.black.withOpacity(1)),
+              ),
             ],
           ),
         ],

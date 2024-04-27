@@ -32,29 +32,30 @@ class PropertyTile extends StatelessWidget {
           child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (title != 'Date')
+          if (title != 'Change Date')
             Text(
               title,
               textAlign: TextAlign.center,
             ),
-          if (title == 'Date')
+          if (title == 'Change Date')
             ElevatedButton(
                 onPressed: () => {changeDate(context)},
                 child: Text(
                   title,
                   textAlign: TextAlign.center,
                 )),
-          IntrinsicWidth(
-            child: TextFormField(
-              readOnly: title == 'Date',
-              keyboardType: keyboardType,
-              textAlign: TextAlign.center,
-              controller: controller,
-              inputFormatters: title == '# of Bags'
-                  ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
-                  : null,
-            ),
+          // IntrinsicWidth(child:
+          TextFormField(
+            readOnly: title == 'Change Date',
+            keyboardType: keyboardType,
+            textAlign: TextAlign.center,
+            controller: controller,
+            inputFormatters: ['# of Bags', 'Pounds of Trash Cleaned']
+                    .contains(title)
+                ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+                : null,
           ),
+          // ),
         ],
       )),
     );

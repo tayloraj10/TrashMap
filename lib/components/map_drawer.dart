@@ -40,11 +40,14 @@ class _MapDrawerState extends State<MapDrawer> {
               style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Text(
-              'Your Cleanups',
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          Container(
+            color: Colors.green,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Text(
+                'Your Cleanups',
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+              ),
             ),
           ),
           StreamBuilder(
@@ -61,65 +64,74 @@ class _MapDrawerState extends State<MapDrawer> {
                 );
               } else {
                 // final data = snapshot.data
-                return ListView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  primary: false,
-                  key: UniqueKey(),
-                  shrinkWrap: true,
-                  children:
-                      snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> data =
-                        document.data()! as Map<String, dynamic>;
-                    data['id'] = document.id;
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 14),
-                      child: SubmissionEditor(
-                          data: data, id: document.id, type: 'cleanups'),
-                    );
-                  }).toList(),
+                return Container(
+                  color: Colors.green,
+                  child: ListView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    primary: false,
+                    key: UniqueKey(),
+                    shrinkWrap: true,
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data =
+                          document.data()! as Map<String, dynamic>;
+                      data['id'] = document.id;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: SubmissionEditor(
+                            data: data, id: document.id, type: 'cleanups'),
+                      );
+                    }).toList(),
+                  ),
                 );
               }
             },
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Text(
-              'Your Trash Reports',
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          Container(
+            color: Colors.red,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Text(
+                'Your Trash Reports',
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+              ),
             ),
           ),
-          StreamBuilder(
-            key: UniqueKey(),
-            stream: _trashStream,
-            builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text('Error: ${snapshot.error}'),
-                );
-              } else {
-                // final data = snapshot.data;
-                return ListView(
-                  physics: const NeverScrollableScrollPhysics(),
-                  primary: false,
-                  key: UniqueKey(),
-                  shrinkWrap: true,
-                  children:
-                      snapshot.data!.docs.map((DocumentSnapshot document) {
-                    Map<String, dynamic> data =
-                        document.data()! as Map<String, dynamic>;
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 14),
-                      child: SubmissionEditor(
-                          data: data, id: document.id, type: 'trash'),
-                    );
-                  }).toList(),
-                );
-              }
-            },
+          Container(
+            color: Colors.red,
+            child: StreamBuilder(
+              key: UniqueKey(),
+              stream: _trashStream,
+              builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Error: ${snapshot.error}'),
+                  );
+                } else {
+                  // final data = snapshot.data;
+                  return ListView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    primary: false,
+                    key: UniqueKey(),
+                    shrinkWrap: true,
+                    children:
+                        snapshot.data!.docs.map((DocumentSnapshot document) {
+                      Map<String, dynamic> data =
+                          document.data()! as Map<String, dynamic>;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: SubmissionEditor(
+                            data: data, id: document.id, type: 'trash'),
+                      );
+                    }).toList(),
+                  );
+                }
+              },
+            ),
           )
         ],
       ),

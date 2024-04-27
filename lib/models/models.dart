@@ -2,6 +2,7 @@ class Cleanup {
   final String location;
   final String group;
   final double bags;
+  final double weight;
   final DateTime date;
   final double lat;
   final double lng;
@@ -13,6 +14,7 @@ class Cleanup {
       {this.location = '',
       this.group = '',
       this.bags = 0,
+      this.weight = 0,
       this.active = true,
       required this.date,
       required this.lat,
@@ -25,6 +27,7 @@ class Cleanup {
       'location': location,
       'group': group,
       'bags': bags,
+      'weight': weight,
       'date': date,
       'lat': lat,
       'lng': lng,
@@ -39,6 +42,7 @@ class Cleanup {
         location: map['location'],
         group: map['group'],
         bags: map['bags'],
+        weight: map['weight'],
         date: map['date'],
         lat: map['lat'],
         lng: map['lng'],

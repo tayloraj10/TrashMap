@@ -20,6 +20,7 @@ class _CleanDialogState extends State<CleanDialog> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _groupController = TextEditingController();
   final TextEditingController _bagsController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
 
@@ -75,6 +76,19 @@ class _CleanDialogState extends State<CleanDialog> {
                   FilteringTextInputFormatter.digitsOnly
                 ]),
             TextFormField(
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Pounds of Trash'),
+                // validator: (value) {
+                //   if (value!.isEmpty || double.tryParse(value)! < 0) {
+                //     return 'Please enter the # of bags cleaned up';
+                //   }
+                //   return null;
+                // },
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ]),
+            TextFormField(
                 readOnly: true,
                 controller: _dateController,
                 keyboardType: TextInputType.datetime,
@@ -114,6 +128,9 @@ class _CleanDialogState extends State<CleanDialog> {
                 bags: _bagsController.text == ''
                     ? 0
                     : double.tryParse(_bagsController.text)!,
+                weight: _weightController.text == ''
+                    ? 0
+                    : double.tryParse(_weightController.text)!,
                 date: stringToDate(_dateController.text),
                 user: auth.currentUser!.displayName!,
                 uid: auth.currentUser!.uid,
