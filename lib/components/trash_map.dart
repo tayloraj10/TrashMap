@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -125,10 +126,28 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickClean() {
-    setState(() {
-      addClean = !addClean;
-      addTrash = false;
-    });
+    if (auth.currentUser != null) {
+      setState(() {
+        addClean = !addClean;
+        addTrash = false;
+      });
+    } else {
+      Flushbar(
+              // title: "Please login to add cleanups",
+              messageText: const Center(
+                child: Text(
+                  "Please login to add cleanups",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ),
+              duration: const Duration(seconds: 5),
+              flushbarStyle: FlushbarStyle.FLOATING,
+              flushbarPosition: FlushbarPosition.TOP,
+              margin: const EdgeInsets.all(8),
+              borderRadius: BorderRadius.circular(8),
+              maxWidth: 300)
+          .show(context);
+    }
   }
 
   newClean() {
@@ -145,10 +164,28 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickTrash() {
-    setState(() {
-      addClean = false;
-      addTrash = !addTrash;
-    });
+    if (auth.currentUser != null) {
+      setState(() {
+        addClean = false;
+        addTrash = !addTrash;
+      });
+    } else {
+      Flushbar(
+              // title: "Please login to add cleanups",
+              messageText: const Center(
+                child: Text(
+                  "Please login to report trash",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ),
+              duration: const Duration(seconds: 5),
+              flushbarStyle: FlushbarStyle.FLOATING,
+              flushbarPosition: FlushbarPosition.TOP,
+              margin: const EdgeInsets.all(8),
+              borderRadius: BorderRadius.circular(8),
+              maxWidth: 300)
+          .show(context);
+    }
   }
 
   newTrash() {
@@ -316,27 +353,27 @@ class _TrashMapState extends State<TrashMap> {
             submit: newSubmit,
             cancel: cancel,
           ),
-        if (auth.currentUser != null)
-          Positioned(
-            top: 16,
-            left: 16,
-            child: Column(
-              children: [
-                MapButton(
-                  image: 'images/clean.png',
-                  callback: clickClean,
-                  tooltip: 'Add Cleanup',
-                  stroke: addClean,
-                ),
-                MapButton(
-                  image: 'images/trash.png',
-                  callback: clickTrash,
-                  tooltip: 'Report Trash',
-                  stroke: addTrash,
-                )
-              ],
-            ),
+        // if (auth.currentUser != null)
+        Positioned(
+          top: 16,
+          left: 16,
+          child: Column(
+            children: [
+              MapButton(
+                image: 'images/clean.png',
+                callback: clickClean,
+                tooltip: 'Add Cleanup',
+                stroke: addClean,
+              ),
+              MapButton(
+                image: 'images/trash.png',
+                callback: clickTrash,
+                tooltip: 'Report Trash',
+                stroke: addTrash,
+              )
+            ],
           ),
+        ),
         Positioned(
           bottom: 120,
           right: 10,
