@@ -92,9 +92,11 @@ class _CleanDialogState extends State<TrashDialog> {
                 lng: widget.latlng.longitude,
                 location: _locationController.text,
                 date: stringToDate(_dateController.text),
-                user: auth.currentUser!.displayName!,
-                uid: auth.currentUser!.uid,
               );
+              if (auth.currentUser != null) {
+                trashData.user = auth.currentUser!.displayName!;
+                trashData.uid = auth.currentUser!.uid;
+              }
               FirebaseFirestore.instance
                   .collection("trash")
                   .add(trashData.toMap())

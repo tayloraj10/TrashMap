@@ -132,9 +132,12 @@ class _CleanDialogState extends State<CleanDialog> {
                     ? 0
                     : double.tryParse(_weightController.text)!,
                 date: stringToDate(_dateController.text),
-                user: auth.currentUser!.displayName!,
-                uid: auth.currentUser!.uid,
               );
+              if (auth.currentUser != null) {
+                cleanupData.user = auth.currentUser!.displayName!;
+                cleanupData.uid = auth.currentUser!.uid;
+              }
+
               FirebaseFirestore.instance
                   .collection("cleanups")
                   .add(cleanupData.toMap())

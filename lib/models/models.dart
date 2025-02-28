@@ -7,8 +7,8 @@ class Cleanup {
   final double lat;
   final double lng;
   final bool active;
-  final String uid;
-  final String user;
+  String uid;
+  String user;
 
   Cleanup(
       {this.location = '',
@@ -58,8 +58,8 @@ class TrashReport {
   final double lat;
   final double lng;
   final bool active;
-  final String uid;
-  final String user;
+  String uid;
+  String user;
 
   TrashReport(
       {this.location = '',
