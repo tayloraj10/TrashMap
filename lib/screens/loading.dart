@@ -64,11 +64,17 @@ class _LoadingPageState extends State<LoadingPage>
       const ImageConfiguration(size: Size(40, 40)),
       'images/trash.png',
     );
+    BitmapDescriptor trashCleanedMarkerIcon =
+        await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/trash_cleaned.png',
+    );
     if (mounted) {
       Provider.of<AppData>(context, listen: false).updateIcons({
         'current': currentLocationMarkerIcon,
         'cleanup': cleanMarkerIcon,
-        'trash': trashMarkerIcon
+        'trash': trashMarkerIcon,
+        'trash_cleaned': trashCleanedMarkerIcon
       });
     }
   }
@@ -77,6 +83,8 @@ class _LoadingPageState extends State<LoadingPage>
     await FirebaseFirestore.instance
         .collection("cleanups")
         .where('active', isEqualTo: true)
+        // .where('date',
+        //     isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
         .get()
         .then((value) => {
               for (var element in value.docs)
@@ -108,7 +116,8 @@ class _LoadingPageState extends State<LoadingPage>
   loadTrash() async {
     await FirebaseFirestore.instance
         .collection("trash")
-        .where('active', isEqualTo: true)
+        .where('date',
+            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
         .get()
         .then((value) => {
               for (var element in value.docs)
@@ -116,8 +125,11 @@ class _LoadingPageState extends State<LoadingPage>
                   Provider.of<AppData>(context, listen: false).addMarker(
                     Marker(
                       markerId: MarkerId('trash${element.id}'),
-                      icon: Provider.of<AppData>(context, listen: false)
-                          .getIcons['trash'],
+                      icon: element['active'] == true
+                          ? Provider.of<AppData>(context, listen: false)
+                              .getIcons['trash']
+                          : Provider.of<AppData>(context, listen: false)
+                              .getIcons['trash_cleaned'],
                       position:
                           LatLng(element.data()['lat'], element.data()['lng']),
                       onTap: (() => showDialog(
@@ -129,15 +141,19 @@ class _LoadingPageState extends State<LoadingPage>
                                 type: 'Trash Report',
                               );
                             },
-                          ).then((value) => hideCleanedTrash(value))),
+                          ).then((value) => trashCleaned(value))),
                     ),
                   )
                 }
             });
   }
 
-  hideCleanedTrash(String markerID) {
-    Provider.of<AppData>(context, listen: false).removeMarker(markerID);
+  trashCleaned(String markerID) {
+    // Provider.of<AppData>(context, listen: false).removeMarker(markerID);
+    Provider.of<AppData>(context, listen: false).updateMarkerIcon(
+        markerID,
+        Provider.of<AppData>(context, listen: false)
+            .getIcons['trash_cleaned']!);
   }
 
   @override

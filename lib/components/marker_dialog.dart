@@ -61,13 +61,20 @@ class MarkerDialog extends StatelessWidget {
                 text: timestampToString(data['date']),
                 style: style,
                 icon: Icons.date_range),
-          if (type == 'Trash Report' && auth.currentUser != null)
+          if (data['active'] == true &&
+              type == 'Trash Report' &&
+              auth.currentUser != null)
             Padding(
               padding: const EdgeInsets.only(top: 20),
               child: ElevatedButton(
                   onPressed: () => {markCleaned(data, context)},
                   child: const Text("Mark As Cleaned")),
             ),
+          if (data['active'] == false)
+            const Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text("This has been marked as cleaned up"),
+            )
         ],
       ),
     );

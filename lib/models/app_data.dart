@@ -32,6 +32,16 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateMarkerIcon(String markerID, BitmapDescriptor newIcon) {
+    markers = markers.map((marker) {
+      if (marker.markerId.value == markerID) {
+        return marker.copyWith(iconParam: newIcon);
+      }
+      return marker;
+    }).toSet();
+    notifyListeners();
+  }
+
   //position
   late LatLng currentLatLng = const LatLng(0.0, 0.0);
 

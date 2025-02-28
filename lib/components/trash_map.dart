@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'package:another_flushbar/flushbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -318,7 +317,7 @@ class _TrashMapState extends State<TrashMap> {
                                 type: 'Trash Report',
                               );
                             },
-                          ).then((value) => hideCleanedTrash(value))),
+                          ).then((value) => trashCleaned(value))),
                     ),
                   )
                 });
@@ -326,8 +325,12 @@ class _TrashMapState extends State<TrashMap> {
     });
   }
 
-  hideCleanedTrash(String markerId) {
-    Provider.of<AppData>(context, listen: false).removeMarker(markerId);
+  trashCleaned(String markerID) {
+    // Provider.of<AppData>(context, listen: false).removeMarker(markerID);
+    Provider.of<AppData>(context, listen: false).updateMarkerIcon(
+        markerID,
+        Provider.of<AppData>(context, listen: false)
+            .getIcons['trash_cleaned']!);
   }
 
   @override
