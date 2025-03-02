@@ -45,11 +45,7 @@ class MyApp extends StatelessWidget {
               secondary: Colors.black,
               tertiary: Colors.red),
         ),
-        home: const Scaffold(
-          body: SafeArea(
-            child: LoadingPage(),
-          ),
-        ),
+        home: const LoadingPage(),
       ),
     );
   }

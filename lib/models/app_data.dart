@@ -82,6 +82,57 @@ class AppData extends ChangeNotifier {
     mapController = newMapController;
     notifyListeners();
   }
+
+  //counts
+  int cleanupCount = 0;
+  int trashCount = 0;
+  int yourCleanupCount = 0;
+  int yourTrashCount = 0;
+
+  void resetCounts() {
+    cleanupCount = 0;
+    trashCount = 0;
+    yourCleanupCount = 0;
+    yourTrashCount = 0;
+    notifyListeners();
+  }
+
+  void incrementCleanupCount() {
+    cleanupCount++;
+    notifyListeners();
+  }
+
+  void incrementTrashCount() {
+    trashCount++;
+    notifyListeners();
+  }
+
+  void incrementYourCleanupCount() {
+    yourCleanupCount++;
+    notifyListeners();
+  }
+
+  void incrementYourTrashCount() {
+    yourTrashCount++;
+    notifyListeners();
+  }
+
+  getCleanupCount() {
+    return cleanupCount;
+  }
+
+  getTrashCount() {
+    return trashCount;
+  }
+
+  getYourCleanupCount() {
+    return yourCleanupCount;
+  }
+
+  getYourTrashCount() {
+    return yourTrashCount;
+  }
+
   //cleanup data
 
   //trash data

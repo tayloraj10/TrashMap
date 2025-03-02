@@ -37,6 +37,7 @@ class _LoadingPageState extends State<LoadingPage>
   }
 
   Future<void> loadData() async {
+    Provider.of<AppData>(context, listen: false).resetCounts();
     await loadIcons();
     await loadCleanups();
     await loadTrash();
@@ -89,6 +90,12 @@ class _LoadingPageState extends State<LoadingPage>
         .then((value) => {
               for (var element in value.docs)
                 {
+                  Provider.of<AppData>(context, listen: false)
+                      .incrementCleanupCount(),
+                  if (auth.currentUser != null &&
+                      auth.currentUser!.uid == element.data()['uid'])
+                    Provider.of<AppData>(context, listen: false)
+                        .incrementYourCleanupCount(),
                   Provider.of<AppData>(context, listen: false).addMarker(
                     Marker(
                       markerId: MarkerId('cleanup${element.id}'),
@@ -122,6 +129,12 @@ class _LoadingPageState extends State<LoadingPage>
         .then((value) => {
               for (var element in value.docs)
                 {
+                  Provider.of<AppData>(context, listen: false)
+                      .incrementTrashCount(),
+                  if (auth.currentUser != null &&
+                      auth.currentUser!.uid == element.data()['uid'])
+                    Provider.of<AppData>(context, listen: false)
+                        .incrementYourTrashCount(),
                   Provider.of<AppData>(context, listen: false).addMarker(
                     Marker(
                       markerId: MarkerId('trash${element.id}'),
@@ -158,45 +171,51 @@ class _LoadingPageState extends State<LoadingPage>
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            appName,
-            style: TextStyle(
-                fontSize: 40, fontWeight: FontWeight.w700, color: primaryColor),
-          ),
-          Stack(
-            alignment: Alignment.center,
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Positioned(
-                bottom: 150,
-                child: AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(
-                        0,
-                        _animation.value,
-                      ),
-                      child: const Icon(
-                        Icons.shopping_bag,
-                        size: 50,
-                        color: Colors.green,
-                      ),
-                    );
-                  },
-                ),
+              const Text(
+                appName,
+                style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w700,
+                    color: primaryColor),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 50),
-                child: Icon(Icons.delete,
-                    size: 150, color: Colors.black.withOpacity(1)),
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    bottom: 150,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(
+                            0,
+                            _animation.value,
+                          ),
+                          child: const Icon(
+                            Icons.shopping_bag,
+                            size: 50,
+                            color: Colors.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 50),
+                    child: Icon(Icons.delete,
+                        size: 150, color: Colors.black.withOpacity(1)),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

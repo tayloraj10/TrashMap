@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
 import 'package:trash_map/firebase_options.dart';
-import 'package:trash_map/screens/map_page.dart';
+import 'package:trash_map/screens/loading.dart';
 
 class Login extends StatelessWidget {
   const Login({
@@ -30,7 +30,7 @@ class Login extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MapPage(),
+                    builder: (context) => const LoadingPage(),
                   ),
                 );
               }),
