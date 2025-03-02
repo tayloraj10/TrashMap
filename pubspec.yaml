@@ -43,6 +43,7 @@ dependencies:
   intl: ^0.18.1
   pointer_interceptor: ^0.10.1
   provider: ^6.1.2
+  sliding_up_panel: ^2.0.0+1
 
 dev_dependencies:
   flutter_lints: ^2.0.0

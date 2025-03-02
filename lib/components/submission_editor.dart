@@ -83,70 +83,147 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(2),
-              child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  alignment: WrapAlignment.center,
-                  runAlignment: WrapAlignment.center,
-                  direction: Axis.horizontal,
-                  // shrinkWrap: true,
-                  // gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  //     crossAxisCount: 3, childAspectRatio: 1.5),
-                  children: [
-                    GridTile(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Zoom To',
-                            textAlign: TextAlign.center,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Small screen layout
+                    return Column(
+                      children: [
+                        GridTile(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Zoom To',
+                                textAlign: TextAlign.center,
+                              ),
+                              IconButton(
+                                  onPressed: () => {
+                                        Provider.of<AppData>(context,
+                                                listen: false)
+                                            .getMapController
+                                            .animateCamera(
+                                                CameraUpdate.newLatLngZoom(
+                                                    LatLng(widget.data['lat'],
+                                                        widget.data['lng']),
+                                                    18))
+                                      },
+                                  icon: const Icon(Icons.location_searching))
+                            ],
                           ),
-                          IconButton(
-                              onPressed: () => {
-                                    Provider.of<AppData>(context, listen: false)
-                                        .getMapController
-                                        .animateCamera(
-                                            CameraUpdate.newLatLngZoom(
-                                                LatLng(widget.data['lat'],
-                                                    widget.data['lng']),
-                                                18))
-                                  },
-                              icon: const Icon(Icons.location_searching))
-                        ],
-                      ),
-                    ),
-                    PropertyTile(
-                        title: 'Change Date',
-                        controller: _dateController,
-                        keyboardType: TextInputType.datetime),
-                    PropertyTile(
-                      title: 'Location',
-                      controller: _locationController,
-                    ),
-                    if (widget.type == 'cleanups')
-                      PropertyTile(
-                        title: 'Group',
-                        controller: _groupController,
-                      ),
-                    if (widget.type == 'cleanups')
-                      PropertyTile(
-                          title: '# of Bags',
-                          controller: _bagsController,
-                          keyboardType: TextInputType.number),
-                    if (widget.type == 'cleanups')
-                      PropertyTile(
-                          title: 'Pounds of Trash Cleaned',
-                          controller: _weightController,
-                          keyboardType: TextInputType.number),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: ElevatedButton(
-                          onPressed: () => {delete(widget.id)},
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.red),
-                          )),
-                    ),
-                  ]),
+                        ),
+                        Table(
+                          columnWidths: const <int, TableColumnWidth>{},
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.middle,
+                          children: [
+                            TableRow(children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: ElevatedButton(
+                                    onPressed: () => {delete(widget.id)},
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(color: Colors.red),
+                                    )),
+                              ),
+                              PropertyTile(
+                                  title: 'Change Date',
+                                  controller: _dateController,
+                                  keyboardType: TextInputType.datetime),
+                              PropertyTile(
+                                title: 'Location',
+                                controller: _locationController,
+                              ),
+                            ]),
+                            if (widget.type == 'cleanups')
+                              TableRow(children: [
+                                PropertyTile(
+                                  title: 'Group',
+                                  controller: _groupController,
+                                ),
+                                PropertyTile(
+                                    title: '# of Bags',
+                                    controller: _bagsController,
+                                    keyboardType: TextInputType.number),
+                                PropertyTile(
+                                    title: 'Pounds of Trash Cleaned',
+                                    controller: _weightController,
+                                    keyboardType: TextInputType.number),
+                              ]),
+                          ],
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Large screen layout
+                    return Table(
+                      columnWidths: const <int, TableColumnWidth>{},
+                      defaultVerticalAlignment:
+                          TableCellVerticalAlignment.middle,
+                      children: [
+                        TableRow(children: [
+                          GridTile(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Zoom To',
+                                  textAlign: TextAlign.center,
+                                ),
+                                IconButton(
+                                    onPressed: () => {
+                                          Provider.of<AppData>(context,
+                                                  listen: false)
+                                              .getMapController
+                                              .animateCamera(
+                                                  CameraUpdate.newLatLngZoom(
+                                                      LatLng(widget.data['lat'],
+                                                          widget.data['lng']),
+                                                      18))
+                                        },
+                                    icon: const Icon(Icons.location_searching))
+                              ],
+                            ),
+                          ),
+                          PropertyTile(
+                              title: 'Change Date',
+                              controller: _dateController,
+                              keyboardType: TextInputType.datetime),
+                          PropertyTile(
+                            title: 'Location',
+                            controller: _locationController,
+                          ),
+                          if (widget.type == 'cleanups')
+                            PropertyTile(
+                              title: 'Group',
+                              controller: _groupController,
+                            ),
+                          if (widget.type == 'cleanups')
+                            PropertyTile(
+                                title: '# of Bags',
+                                controller: _bagsController,
+                                keyboardType: TextInputType.number),
+                          if (widget.type == 'cleanups')
+                            PropertyTile(
+                                title: 'Pounds of Trash Cleaned',
+                                controller: _weightController,
+                                keyboardType: TextInputType.number),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ElevatedButton(
+                                onPressed: () => {delete(widget.id)},
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                )),
+                          ),
+                        ])
+                      ],
+                    );
+                  }
+                },
+              ),
             ),
           ),
         ),
