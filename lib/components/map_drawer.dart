@@ -41,7 +41,7 @@ class _MapDrawerState extends State<MapDrawer> {
               const Padding(
                 padding: EdgeInsets.all(14),
                 child: Text(
-                  'Manage Your Submissions',
+                  'Manage Your',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
