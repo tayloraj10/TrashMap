@@ -41,6 +41,9 @@ class _LoadingPageState extends State<LoadingPage>
     await loadIcons();
     await loadCleanups();
     await loadTrash();
+    if (auth.currentUser != null) {
+      await loadCleanupRoutes();
+    }
     if (mounted) {
       Navigator.push(
         context,
@@ -181,6 +184,56 @@ class _LoadingPageState extends State<LoadingPage>
         markerID,
         Provider.of<AppData>(context, listen: false)
             .getIcons['trash_cleaned']!);
+  }
+
+  loadCleanupRoutes() async {
+    await FirebaseFirestore.instance
+        .collection("cleanup_routes")
+        .where('date',
+            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+        .get()
+        .then((value) {
+      for (var element in value.docs) {
+        Provider.of<AppData>(context, listen: false).addRoute(
+          Polyline(
+            polylineId: PolylineId('path${element.id}'),
+            color: Colors.blue,
+            width: 5,
+            points: element
+                .data()['waypoints']
+                .map<LatLng>((point) => LatLng(point['lat'], point['lng']))
+                .toList(),
+          ),
+        );
+        var waypoints = element.data()['waypoints'];
+        if (waypoints.isNotEmpty) {
+          Provider.of<AppData>(context, listen: false).addMarker(
+            Marker(
+              markerId: MarkerId(
+                  'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue),
+              position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
+              infoWindow: InfoWindow(
+                title: '${element.data()['routeName']}: Start Point',
+              ),
+            ),
+          );
+          Provider.of<AppData>(context, listen: false).addMarker(
+            Marker(
+              markerId: MarkerId(
+                  'waypoint${element.id}${waypoints.last['lat']}${waypoints.last['lng']}'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue),
+              position: LatLng(waypoints.last['lat'], waypoints.last['lng']),
+              infoWindow: InfoWindow(
+                title: '${element.data()['routeName']}: End Point}',
+              ),
+            ),
+          );
+        }
+      }
+    });
   }
 
   @override

@@ -4,10 +4,17 @@ import 'package:flutterfire_ui/auth.dart';
 import 'package:trash_map/firebase_options.dart';
 import 'package:trash_map/screens/loading.dart';
 
-class Login extends StatelessWidget {
+class Login extends StatefulWidget {
   const Login({
     super.key,
   });
+
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +25,7 @@ class Login extends StatelessWidget {
         body: Column(children: [
           Expanded(
               child: SignInScreen(
-            auth: FirebaseAuth.instance,
+            auth: auth,
             providerConfigs: const [
               EmailProviderConfiguration(),
               PhoneProviderConfiguration(),
