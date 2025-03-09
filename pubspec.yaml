@@ -36,6 +36,7 @@ dependencies:
   firebase_core: ^2.27.2
   flutter:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
   flutterfire_ui: ^0.4.3+20
   geolocator: ^11.0.0
   google_maps_flutter: ^2.6.0
