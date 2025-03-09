@@ -92,10 +92,24 @@ class _LoadingPageState extends State<LoadingPage>
                 {
                   Provider.of<AppData>(context, listen: false)
                       .incrementCleanupCount(),
+                  if (element.data()['weight'] != null)
+                    Provider.of<AppData>(context, listen: false)
+                        .incrementPounds(element.data()['weight']),
+                  if (element.data()['bags'] != null)
+                    Provider.of<AppData>(context, listen: false)
+                        .incrementBags(element.data()['bags']),
                   if (auth.currentUser != null &&
                       auth.currentUser!.uid == element.data()['uid'])
-                    Provider.of<AppData>(context, listen: false)
-                        .incrementYourCleanupCount(),
+                    {
+                      Provider.of<AppData>(context, listen: false)
+                          .incrementYourCleanupCount(),
+                      if (element.data()['weight'] != null)
+                        Provider.of<AppData>(context, listen: false)
+                            .incrementYourPounds(element.data()['weight']),
+                      if (element.data()['bags'] != null)
+                        Provider.of<AppData>(context, listen: false)
+                            .incrementYourBags(element.data()['bags']),
+                    },
                   Provider.of<AppData>(context, listen: false).addMarker(
                     Marker(
                       markerId: MarkerId('cleanup${element.id}'),

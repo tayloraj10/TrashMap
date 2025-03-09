@@ -130,12 +130,20 @@ class AppData extends ChangeNotifier {
   int trashCount = 0;
   int yourCleanupCount = 0;
   int yourTrashCount = 0;
+  int yourPounds = 0;
+  int yourBags = 0;
+  int pounds = 0;
+  int bags = 0;
 
   void resetCounts() {
     cleanupCount = 0;
     trashCount = 0;
     yourCleanupCount = 0;
     yourTrashCount = 0;
+    pounds = 0;
+    bags = 0;
+    yourPounds = 0;
+    yourBags = 0;
     notifyListeners();
   }
 
@@ -159,6 +167,26 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
+  void incrementPounds(int pounds) {
+    this.pounds += pounds;
+    notifyListeners();
+  }
+
+  void incrementBags(int bags) {
+    this.bags += bags;
+    notifyListeners();
+  }
+
+  void incrementYourPounds(int pounds) {
+    yourPounds += pounds;
+    notifyListeners();
+  }
+
+  void incrementYourBags(int bags) {
+    yourBags += bags;
+    notifyListeners();
+  }
+
   getCleanupCount() {
     return cleanupCount;
   }
@@ -175,9 +203,19 @@ class AppData extends ChangeNotifier {
     return yourTrashCount;
   }
 
-  //cleanup data
+  getPounds() {
+    return pounds;
+  }
 
-  //trash data
+  getBags() {
+    return bags;
+  }
 
-  //auth
+  getYourPounds() {
+    return yourPounds;
+  }
+
+  getYourBags() {
+    return yourBags;
+  }
 }
