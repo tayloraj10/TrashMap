@@ -93,3 +93,63 @@ class TrashReport {
         user: map['user']);
   }
 }
+
+class CleanupRoute {
+  final String routeName;
+  final List<CleanupWaypoint> waypoints;
+  final DateTime date;
+  final bool active;
+  String uid;
+  String user;
+
+  CleanupRoute(
+      {this.routeName = '',
+      this.active = true,
+      required this.date,
+      this.waypoints = const [],
+      this.uid = '',
+      this.user = ''});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'routeName': routeName,
+      'waypoints': waypoints.map((cleanup) => cleanup.toMap()).toList(),
+      'date': date,
+      'active': active,
+      'uid': uid,
+      'user': user,
+    };
+  }
+
+  factory CleanupRoute.fromMap(Map<String, dynamic> map) {
+    return CleanupRoute(
+        routeName: map['routeName'],
+        waypoints: (map['waypoints'] as List)
+            .map((cleanup) => CleanupWaypoint.fromMap(cleanup))
+            .toList(),
+        date: map['date'],
+        active: map['active'],
+        uid: map['uid'],
+        user: map['user']);
+  }
+}
+
+class CleanupWaypoint {
+  final double lat;
+  final double lng;
+  final int number;
+
+  CleanupWaypoint({this.lat = 0, this.lng = 0, this.number = 0});
+  Map<String, dynamic> toMap() {
+    return {
+      'lat': lat,
+      'lng': lng,
+      'number': number,
+    };
+  }
+
+  factory CleanupWaypoint.fromMap(Map<String, dynamic> map) {
+    return CleanupWaypoint(
+        lat: map['lat'], lng: map['lng'], number: map['number']);
+  }
+}

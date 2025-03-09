@@ -17,9 +17,30 @@ class AppData extends ChangeNotifier {
 
   //markers
   Set<Marker> markers = {};
+  Set<Polyline> routes = {};
 
   get getMarkers {
     return markers;
+  }
+
+  get getRoutes {
+    return routes;
+  }
+
+  Marker getMarker(String markerID) {
+    return markers
+        .firstWhere((element) => element.markerId == MarkerId(markerID));
+  }
+
+  Marker getPreviousMarker(int tickNumber) {
+    return markers.where((marker) {
+      return marker.markerId.value.contains('route_') &&
+          int.parse(marker.markerId.value.split('_').last) < tickNumber;
+    }).reduce((a, b) {
+      int aTick = int.parse(a.markerId.value.split('_').last);
+      int bTick = int.parse(b.markerId.value.split('_').last);
+      return (tickNumber - aTick).abs() < (tickNumber - bTick).abs() ? a : b;
+    });
   }
 
   void removeMarker(String markerID) {
@@ -29,6 +50,27 @@ class AppData extends ChangeNotifier {
 
   void addMarker(Marker marker) {
     markers.add(marker);
+    notifyListeners();
+  }
+
+  void addRoute(Polyline route) {
+    routes.add(route);
+    notifyListeners();
+  }
+
+  bool hasRoute() {
+    return markers.any((marker) => marker.markerId.value.contains('route_'));
+  }
+
+  List<Marker> getRoutePoints() {
+    return markers
+        .where((marker) => marker.markerId.value.contains('route_'))
+        .toList();
+  }
+
+  void clearRoute() {
+    markers.removeWhere((marker) => marker.markerId.value.contains('route_'));
+    routes.clear();
     notifyListeners();
   }
 

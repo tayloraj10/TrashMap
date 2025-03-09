@@ -1,4 +1,5 @@
-import 'dart:developer';
+import 'dart:async';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
 import 'package:trash_map/components/marker_dialog.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
+import 'package:trash_map/components/route_dialog.dart';
 import 'package:trash_map/components/trash_dialog.dart';
 import 'package:trash_map/models/app_data.dart';
 
@@ -25,7 +27,9 @@ class _TrashMapState extends State<TrashMap> {
   late String droppedType;
   bool addClean = false;
   bool addTrash = false;
+  bool addRoute = false;
   bool pinDropped = false;
+  bool confirmingRoute = false;
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
@@ -42,6 +46,8 @@ class _TrashMapState extends State<TrashMap> {
 
   setCurrentLocationMarker() {
     setState(() {
+      Provider.of<AppData>(context, listen: false)
+          .removeMarker('current_location');
       Provider.of<AppData>(context, listen: false).addMarker(Marker(
         markerId: const MarkerId('current_location'),
         icon: Provider.of<AppData>(context, listen: false).getIcons['current'],
@@ -115,7 +121,7 @@ class _TrashMapState extends State<TrashMap> {
     );
     Geolocator.getPositionStream(locationSettings: locationSettings)
         .listen((Position? position) {
-      log(position.toString());
+      // log(position.toString());
       setState(() {
         Provider.of<AppData>(context, listen: false).updateLatLng(position!);
       });
@@ -127,6 +133,7 @@ class _TrashMapState extends State<TrashMap> {
   clickClean() {
     setState(() {
       addClean = !addClean;
+      addRoute = false;
       addTrash = false;
     });
     // if (auth.currentUser != null) {
@@ -157,7 +164,6 @@ class _TrashMapState extends State<TrashMap> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // Return widget tree containing the AlertDialog
         return CleanDialog(
           latlng: droppedPostiion,
         );
@@ -169,6 +175,7 @@ class _TrashMapState extends State<TrashMap> {
   clickTrash() {
     setState(() {
       addClean = false;
+      addRoute = false;
       addTrash = !addTrash;
     });
     // if (auth.currentUser != null) {
@@ -193,6 +200,79 @@ class _TrashMapState extends State<TrashMap> {
     //           maxWidth: 300)
     //       .show(context);
     // }
+  }
+
+  clickRoute() {
+    if (addRoute) {
+      confirmingRoute = true;
+    }
+    setState(() {
+      addClean = false;
+      addTrash = false;
+      addRoute = !addRoute;
+    });
+    if (addRoute) {
+      recordRoute();
+    }
+  }
+
+  recordRoute() {
+    int seconds = 30;
+    Timer.periodic(Duration(seconds: seconds), (timer) async {
+      if (addRoute) {
+        LatLng currentLatLng =
+            Provider.of<AppData>(context, listen: false).getLatLng;
+        LatLng latLng = LatLng(currentLatLng.latitude, currentLatLng.longitude);
+        // LatLng latLng = LatLng(
+        //     currentLatLng.latitude +
+        //         (Random().nextInt(401) + 100) /
+        //             111320, // random number between 100 and 500 feet in latitude
+        //     currentLatLng.longitude +
+        //         (Random().nextInt(401) + 100) /
+        //             111320); // random number between 100 and 500 feet in longitude
+        setState(() {
+          String markerID = 'route_${timer.tick}';
+          Provider.of<AppData>(context, listen: false).addMarker(Marker(
+              markerId: MarkerId(markerID),
+              position: latLng,
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                  BitmapDescriptor.hueBlue),
+              infoWindow: InfoWindow(
+                title: '${timer.tick}',
+              )));
+
+          // Draw polyline connecting the markers
+          List<LatLng> routePoints = [
+            Provider.of<AppData>(context, listen: false)
+                .getMarker('route_${timer.tick}')
+                .position,
+            timer.tick == 1
+                ? Provider.of<AppData>(context, listen: false).getLatLng
+                : Provider.of<AppData>(context, listen: false)
+                    .getPreviousMarker(timer.tick)
+                    .position,
+          ];
+
+          Provider.of<AppData>(context, listen: false).addRoute(Polyline(
+            polylineId: PolylineId(markerID),
+            points: routePoints,
+            color: Colors.blue,
+            width: 5,
+          ));
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  newRoute() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const RouteDialog();
+      },
+    ).then((value) => {if (value != null) successfulSubmit('', 'route')});
   }
 
   newTrash() {
@@ -254,8 +334,10 @@ class _TrashMapState extends State<TrashMap> {
       addClean = false;
       addTrash = false;
       pinDropped = false;
+      confirmingRoute = false;
       Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
       Provider.of<AppData>(context, listen: false).removeMarker('new_trash');
+      Provider.of<AppData>(context, listen: false).clearRoute();
     });
   }
 
@@ -263,7 +345,12 @@ class _TrashMapState extends State<TrashMap> {
     setState(() {
       addClean = false;
       addTrash = false;
+      addRoute = false;
       pinDropped = false;
+      confirmingRoute = false;
+      if (type == 'route') {
+        Provider.of<AppData>(context, listen: false).clearRoute();
+      }
       if (type == 'cleanup') {
         Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
 
@@ -344,6 +431,7 @@ class _TrashMapState extends State<TrashMap> {
             initialCameraPosition: _kStart,
             // markers: _markers,
             markers: Provider.of<AppData>(context, listen: true).getMarkers,
+            polylines: Provider.of<AppData>(context, listen: true).getRoutes,
             onMapCreated: (controller) async {
               setState(() {
                 Provider.of<AppData>(context, listen: false)
@@ -359,9 +447,18 @@ class _TrashMapState extends State<TrashMap> {
                     ? "Click map to report trash"
                     : "",
           ),
+        if (addRoute)
+          const MapText(
+            text: "Recording Route, Click Button Again To Stop",
+          ),
         if (pinDropped)
           PinConfirmation(
             submit: newSubmit,
+            cancel: cancel,
+          ),
+        if (confirmingRoute)
+          PinConfirmation(
+            submit: newRoute,
             cancel: cancel,
           ),
         // if (auth.currentUser != null)
@@ -381,7 +478,20 @@ class _TrashMapState extends State<TrashMap> {
                 callback: clickTrash,
                 tooltip: 'Report Trash',
                 stroke: addTrash,
-              )
+              ),
+              if (auth.currentUser != null)
+                MapButton(
+                  image: 'images/tracking.png',
+                  callback: clickRoute,
+                  tooltip: 'Record Route (beta)',
+                  stroke: addRoute,
+                ),
+              // MapButton(
+              //   image: 'images/draw.png',
+              //   callback: clickTrash,
+              //   tooltip: 'Draw Route',
+              //   stroke: addRoute,
+              // )
             ],
           ),
         ),
