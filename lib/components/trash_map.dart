@@ -454,7 +454,8 @@ class _TrashMapState extends State<TrashMap> {
           ),
         if (addRoute)
           const MapText(
-            text: "Recording Route, Click Button Again To Stop",
+            text:
+                "Recording Route Every 30 seconds, \nClick Button Again To Stop",
           ),
         if (pinDropped)
           PinConfirmation(
