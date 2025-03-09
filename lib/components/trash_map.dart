@@ -203,16 +203,21 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickRoute() {
-    if (addRoute) {
-      confirmingRoute = true;
-    }
-    setState(() {
-      addClean = false;
-      addTrash = false;
-      addRoute = !addRoute;
-    });
-    if (addRoute) {
-      recordRoute();
+    if (!confirmingRoute) {
+      if (addRoute) {
+        confirmingRoute = true;
+      } else {
+        confirmingRoute = false;
+        cancel();
+      }
+      setState(() {
+        addClean = false;
+        addTrash = false;
+        addRoute = !addRoute;
+      });
+      if (addRoute) {
+        recordRoute();
+      }
     }
   }
 
@@ -256,7 +261,7 @@ class _TrashMapState extends State<TrashMap> {
           Provider.of<AppData>(context, listen: false).addRoute(Polyline(
             polylineId: PolylineId(markerID),
             points: routePoints,
-            color: Colors.blue,
+            color: Colors.red,
             width: 5,
           ));
         });

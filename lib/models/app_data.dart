@@ -70,7 +70,7 @@ class AppData extends ChangeNotifier {
 
   void clearRoute() {
     markers.removeWhere((marker) => marker.markerId.value.contains('route_'));
-    routes.clear();
+    routes.removeWhere((route) => route.polylineId.value.contains('route_'));
     notifyListeners();
   }
 

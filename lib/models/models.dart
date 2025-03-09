@@ -99,6 +99,8 @@ class CleanupRoute {
   final List<CleanupWaypoint> waypoints;
   final DateTime date;
   final bool active;
+  final double bags;
+  final double weight;
   String uid;
   String user;
 
@@ -107,6 +109,8 @@ class CleanupRoute {
       this.active = true,
       required this.date,
       this.waypoints = const [],
+      this.bags = 0,
+      this.weight = 0,
       this.uid = '',
       this.user = ''});
 
@@ -116,6 +120,8 @@ class CleanupRoute {
       'waypoints': waypoints.map((cleanup) => cleanup.toMap()).toList(),
       'date': date,
       'active': active,
+      'bags': bags,
+      'weight': weight,
       'uid': uid,
       'user': user,
     };
@@ -129,6 +135,8 @@ class CleanupRoute {
             .toList(),
         date: map['date'],
         active: map['active'],
+        bags: map['bags'],
+        weight: map['weight'],
         uid: map['uid'],
         user: map['user']);
   }

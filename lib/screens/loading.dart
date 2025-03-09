@@ -211,11 +211,12 @@ class _LoadingPageState extends State<LoadingPage>
             Marker(
               markerId: MarkerId(
                   'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueBlue),
+              icon: Provider.of<AppData>(context, listen: false)
+                  .getIcons['cleanup'],
               position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
               infoWindow: InfoWindow(
                 title: '${element.data()['routeName']}: Start Point',
+                snippet: generateSnippet(element.data(), 'Start'),
               ),
             ),
           );
@@ -223,17 +224,34 @@ class _LoadingPageState extends State<LoadingPage>
             Marker(
               markerId: MarkerId(
                   'waypoint${element.id}${waypoints.last['lat']}${waypoints.last['lng']}'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueBlue),
+              icon: Provider.of<AppData>(context, listen: false)
+                  .getIcons['cleanup'],
               position: LatLng(waypoints.last['lat'], waypoints.last['lng']),
               infoWindow: InfoWindow(
-                title: '${element.data()['routeName']}: End Point}',
+                title: '${element.data()['routeName']}: End Point',
+                snippet: generateSnippet(element.data(), 'End'),
               ),
             ),
           );
         }
       }
     });
+  }
+
+  generateSnippet(Map data, String type) {
+    String content = '<div id="bodyContent">';
+    if (data['date'] != null) {
+      content +=
+          "<p><b>Date:</b> ${data['date'].toDate().toLocal().toString().split(' ')[0]}</p>";
+    }
+    if (data['bags'] != null && data['bags'] > 0) {
+      content += "<p><b>Bags:</b> ${data['bags']}</p>";
+    }
+    if (data['weight'] != null && data['weight'] > 0) {
+      content += "<p><b>Weight:</b> ${data['weight']} lbs</p>";
+    }
+    content += "</div></div>";
+    return content;
   }
 
   @override
