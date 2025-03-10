@@ -68,9 +68,21 @@ class AppData extends ChangeNotifier {
         .toList();
   }
 
+  List<Marker> getPathPoints() {
+    return markers
+        .where((marker) => marker.markerId.value.contains('path_'))
+        .toList();
+  }
+
   void clearRoute() {
     markers.removeWhere((marker) => marker.markerId.value.contains('route_'));
     routes.removeWhere((route) => route.polylineId.value.contains('route_'));
+    notifyListeners();
+  }
+
+  void clearPaths() {
+    markers.removeWhere((marker) => marker.markerId.value.contains('path_'));
+    routes.removeWhere((route) => route.polylineId.value.contains('path_'));
     notifyListeners();
   }
 
@@ -81,6 +93,25 @@ class AppData extends ChangeNotifier {
       }
       return marker;
     }).toSet();
+    notifyListeners();
+  }
+
+  int getPathCount() {
+    return markers
+        .where((marker) => marker.markerId.value.contains('path_'))
+        .length;
+  }
+
+  void removeLastPathPoint() {
+    markers.removeWhere((marker) {
+      return marker.markerId.value.contains('path_') &&
+          int.parse(marker.markerId.value.split('_').last) == getPathCount();
+    });
+    routes.removeWhere((route) {
+      return route.polylineId.value.contains('path_') &&
+          int.parse(route.polylineId.value.split('_').last) ==
+              getPathCount() + 1;
+    });
     notifyListeners();
   }
 

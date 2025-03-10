@@ -35,7 +35,7 @@ class MapButton extends StatelessWidget {
                   borderRadius: const BorderRadius.all(Radius.circular(50.0)),
                   border: stroke
                       ? Border.all(
-                          color: Colors.green,
+                          color: Colors.yellowAccent,
                           width: 4,
                         )
                       : null,

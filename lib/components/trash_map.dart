@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
 import 'package:trash_map/components/marker_dialog.dart';
+import 'package:trash_map/components/path_dialog.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
 import 'package:trash_map/components/route_dialog.dart';
 import 'package:trash_map/components/trash_dialog.dart';
@@ -28,6 +29,7 @@ class _TrashMapState extends State<TrashMap> {
   bool addClean = false;
   bool addTrash = false;
   bool addRoute = false;
+  bool addDraw = false;
   bool pinDropped = false;
   bool confirmingRoute = false;
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -134,6 +136,7 @@ class _TrashMapState extends State<TrashMap> {
     setState(() {
       addClean = !addClean;
       addRoute = false;
+      addDraw = false;
       addTrash = false;
     });
     // if (auth.currentUser != null) {
@@ -164,8 +167,10 @@ class _TrashMapState extends State<TrashMap> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return CleanDialog(
-          latlng: droppedPostiion,
+        return PointerInterceptor(
+          child: CleanDialog(
+            latlng: droppedPostiion,
+          ),
         );
       },
     ).then((value) =>
@@ -176,6 +181,7 @@ class _TrashMapState extends State<TrashMap> {
     setState(() {
       addClean = false;
       addRoute = false;
+      addDraw = false;
       addTrash = !addTrash;
     });
     // if (auth.currentUser != null) {
@@ -221,8 +227,21 @@ class _TrashMapState extends State<TrashMap> {
     }
   }
 
+  clickDraw() {
+    if (addDraw) {
+      cancel();
+    } else {
+      setState(() {
+        addClean = false;
+        addTrash = false;
+        addRoute = false;
+        addDraw = !addDraw;
+      });
+    }
+  }
+
   recordRoute() {
-    int seconds = 30;
+    int seconds = 60;
     Timer.periodic(Duration(seconds: seconds), (timer) async {
       if (addRoute) {
         LatLng currentLatLng =
@@ -240,8 +259,7 @@ class _TrashMapState extends State<TrashMap> {
           Provider.of<AppData>(context, listen: false).addMarker(Marker(
               markerId: MarkerId(markerID),
               position: latLng,
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueBlue),
+              icon: BitmapDescriptor.defaultMarker,
               infoWindow: InfoWindow(
                 title: '${timer.tick}',
               )));
@@ -275,9 +293,25 @@ class _TrashMapState extends State<TrashMap> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return const RouteDialog();
+        return PointerInterceptor(child: const RouteDialog());
       },
     ).then((value) => {if (value != null) successfulSubmit('', 'route')});
+  }
+
+  newPath() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevents clicking outside the dialog
+      builder: (BuildContext context) {
+        return PointerInterceptor(child: const PathDialog());
+      },
+    ).then((value) => {if (value != null) successfulSubmit('', 'path')});
+  }
+
+  removeLastPathPoint() {
+    setState(() {
+      Provider.of<AppData>(context, listen: false).removeLastPathPoint();
+    });
   }
 
   newTrash() {
@@ -285,8 +319,10 @@ class _TrashMapState extends State<TrashMap> {
       context: context,
       builder: (BuildContext context) {
         // Return widget tree containing the AlertDialog
-        return TrashDialog(
-          latlng: droppedPostiion,
+        return PointerInterceptor(
+          child: TrashDialog(
+            latlng: droppedPostiion,
+          ),
         );
       },
     ).then((value) =>
@@ -294,7 +330,34 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   clickMap(LatLng position) {
-    if (addClean || addTrash) {
+    if (addDraw) {
+      int pathNumber =
+          Provider.of<AppData>(context, listen: false).getPathCount() + 1;
+      setState(() {
+        Provider.of<AppData>(context, listen: false).addMarker(Marker(
+            markerId: MarkerId('path_$pathNumber'),
+            icon: pathNumber == 1
+                ? Provider.of<AppData>(context, listen: false)
+                    .getIcons['cleanup']
+                : BitmapDescriptor.defaultMarker,
+            position: position,
+            draggable: false));
+
+        if (pathNumber > 1) {
+          Provider.of<AppData>(context, listen: false).addRoute(Polyline(
+            polylineId: PolylineId('path_$pathNumber'),
+            points: [
+              Provider.of<AppData>(context, listen: false)
+                  .getMarker('path_${pathNumber - 1}')
+                  .position,
+              position
+            ],
+            color: Colors.red,
+            width: 5,
+          ));
+        }
+      });
+    } else if (addClean || addTrash) {
       if (addClean) {
         setState(() {
           Provider.of<AppData>(context, listen: false).addMarker(Marker(
@@ -338,11 +401,14 @@ class _TrashMapState extends State<TrashMap> {
     setState(() {
       addClean = false;
       addTrash = false;
+      addDraw = false;
+      addRoute = false;
       pinDropped = false;
       confirmingRoute = false;
       Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
       Provider.of<AppData>(context, listen: false).removeMarker('new_trash');
       Provider.of<AppData>(context, listen: false).clearRoute();
+      Provider.of<AppData>(context, listen: false).clearPaths();
     });
   }
 
@@ -351,10 +417,14 @@ class _TrashMapState extends State<TrashMap> {
       addClean = false;
       addTrash = false;
       addRoute = false;
+      addDraw = false;
       pinDropped = false;
       confirmingRoute = false;
       if (type == 'route') {
         Provider.of<AppData>(context, listen: false).clearRoute();
+      }
+      if (type == 'path') {
+        Provider.of<AppData>(context, listen: false).clearPaths();
       }
       if (type == 'cleanup') {
         Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
@@ -375,10 +445,12 @@ class _TrashMapState extends State<TrashMap> {
                             context: context,
                             builder: (BuildContext context) {
                               // Return widget tree containing the AlertDialog
-                              return MarkerDialog(
-                                data: value.data()!,
-                                id: value.id,
-                                type: 'Cleanup',
+                              return PointerInterceptor(
+                                child: MarkerDialog(
+                                  data: value.data()!,
+                                  id: value.id,
+                                  type: 'Cleanup',
+                                ),
                               );
                             },
                           )),
@@ -403,10 +475,12 @@ class _TrashMapState extends State<TrashMap> {
                             context: context,
                             builder: (BuildContext context) {
                               // Return widget tree containing the AlertDialog
-                              return MarkerDialog(
-                                data: value.data()!,
-                                id: value.id,
-                                type: 'Trash Report',
+                              return PointerInterceptor(
+                                child: MarkerDialog(
+                                  data: value.data()!,
+                                  id: value.id,
+                                  type: 'Trash Report',
+                                ),
                               );
                             },
                           ).then((value) => trashCleaned(value))),
@@ -454,9 +528,47 @@ class _TrashMapState extends State<TrashMap> {
           ),
         if (addRoute)
           const MapText(
-            text:
-                "Recording Route Every 30 seconds, \nClick Button Again To Stop",
+            text: "Recording Route Every Minute, \nClick Button Again To Stop",
           ),
+        if (addDraw)
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const MapText(
+                    text: "Click map to draw a route",
+                  ),
+                  Tooltip(
+                    message: 'Remove Last Point',
+                    child: PointerInterceptor(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.orange,
+                          foregroundColor: Colors.white,
+                          child: IconButton(
+                            onPressed: () => {removeLastPathPoint()},
+                            icon: const Icon(
+                              Icons.remove,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              PinConfirmation(
+                submit: newPath,
+                cancel: cancel,
+              ),
+            ],
+          ),
+
         if (pinDropped)
           PinConfirmation(
             submit: newSubmit,
@@ -492,12 +604,13 @@ class _TrashMapState extends State<TrashMap> {
                   tooltip: 'Record Route (beta)',
                   stroke: addRoute,
                 ),
-              // MapButton(
-              //   image: 'images/draw.png',
-              //   callback: clickTrash,
-              //   tooltip: 'Draw Route',
-              //   stroke: addRoute,
-              // )
+              if (auth.currentUser != null)
+                MapButton(
+                  image: 'images/draw.png',
+                  callback: clickDraw,
+                  tooltip: 'Draw Route (beta)',
+                  stroke: addDraw,
+                )
             ],
           ),
         ),

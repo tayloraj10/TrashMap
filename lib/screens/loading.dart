@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_map/components/marker_dialog.dart';
+import 'package:trash_map/components/path_marker_dialog.dart';
 import 'package:trash_map/models/app_data.dart';
 import 'package:trash_map/models/constants.dart';
 import 'package:trash_map/screens/map_page.dart';
@@ -33,7 +34,9 @@ class _LoadingPageState extends State<LoadingPage>
       begin: 0,
       end: 100,
     ).animate(_controller);
-    loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadData();
+    });
   }
 
   Future<void> loadData() async {
@@ -43,6 +46,7 @@ class _LoadingPageState extends State<LoadingPage>
     await loadTrash();
     if (auth.currentUser != null) {
       await loadCleanupRoutes();
+      await loadCleanupPaths();
     }
     if (mounted) {
       Navigator.push(
@@ -196,7 +200,7 @@ class _LoadingPageState extends State<LoadingPage>
       for (var element in value.docs) {
         Provider.of<AppData>(context, listen: false).addRoute(
           Polyline(
-            polylineId: PolylineId('path${element.id}'),
+            polylineId: PolylineId('routeold_${element.id}'),
             color: Colors.blue,
             width: 5,
             points: element
@@ -231,6 +235,51 @@ class _LoadingPageState extends State<LoadingPage>
                 title: '${element.data()['routeName']}: End Point',
                 snippet: generateSnippet(element.data(), 'End'),
               ),
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  loadCleanupPaths() async {
+    await FirebaseFirestore.instance
+        .collection("cleanup_paths")
+        .where('date',
+            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+        .get()
+        .then((value) {
+      for (var element in value.docs) {
+        Provider.of<AppData>(context, listen: false).addRoute(
+          Polyline(
+            polylineId: PolylineId('pathold_${element.id}'),
+            color: Colors.blue,
+            width: 5,
+            points: element
+                .data()['waypoints']
+                .map<LatLng>((point) => LatLng(point['lat'], point['lng']))
+                .toList(),
+          ),
+        );
+        var waypoints = element.data()['waypoints'];
+        if (waypoints.isNotEmpty) {
+          Provider.of<AppData>(context, listen: false).addMarker(
+            Marker(
+              markerId: MarkerId(
+                  'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
+              icon: Provider.of<AppData>(context, listen: false)
+                  .getIcons['cleanup'],
+              position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
+              onTap: (() => showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      // Return widget tree containing the AlertDialog
+                      return PathMarkerDialog(
+                        data: element.data(),
+                        id: element.id,
+                      );
+                    },
+                  )),
             ),
           );
         }
