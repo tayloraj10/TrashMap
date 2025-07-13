@@ -52,6 +52,22 @@ class AppData extends ChangeNotifier {
     notifyListeners();
   }
 
+  void removePathMarker(String markerID) {
+    markers.removeWhere(
+        (marker) => marker.markerId.value.contains('pathpoint$markerID'));
+    routes.removeWhere(
+        (route) => route.polylineId.value.contains('pathold_$markerID'));
+    notifyListeners();
+  }
+
+  void removeRouteMarker(String markerID) {
+    markers.removeWhere(
+        (marker) => marker.markerId.value.contains('routepoint$markerID'));
+    routes.removeWhere(
+        (route) => route.polylineId.value.contains('reouteold_$markerID'));
+    notifyListeners();
+  }
+
   void addMarker(Marker marker) {
     markers.add(marker);
     notifyListeners();
@@ -438,7 +454,7 @@ class AppData extends ChangeNotifier {
           Provider.of<AppData>(context, listen: false).addMarker(
             Marker(
               markerId: MarkerId(
-                  'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
+                  'routepoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
               icon: Provider.of<AppData>(context, listen: false)
                   .getIcons['route'],
               position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
@@ -451,7 +467,7 @@ class AppData extends ChangeNotifier {
           Provider.of<AppData>(context, listen: false).addMarker(
             Marker(
               markerId: MarkerId(
-                  'waypoint${element.id}${waypoints.last['lat']}${waypoints.last['lng']}'),
+                  'routepoint${element.id}${waypoints.last['lat']}${waypoints.last['lng']}'),
               icon: Provider.of<AppData>(context, listen: false)
                   .getIcons['route'],
               position: LatLng(waypoints.last['lat'], waypoints.last['lng']),
@@ -490,7 +506,7 @@ class AppData extends ChangeNotifier {
           Provider.of<AppData>(context, listen: false).addMarker(
             Marker(
               markerId: MarkerId(
-                  'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
+                  'pathpoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
               icon:
                   Provider.of<AppData>(context, listen: false).getIcons['draw'],
               position: LatLng(waypoints.first['lat'], waypoints.first['lng']),

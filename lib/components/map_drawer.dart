@@ -13,7 +13,14 @@ class MapDrawer extends StatefulWidget {
 }
 
 class _MapDrawerState extends State<MapDrawer> {
-  bool showCleanups = true;
+  // bool showCleanups = true;
+  List<Map<String, String>> types = [
+    {'key': 'cleanups', 'label': 'Cleanups'},
+    {'key': 'trash', 'label': 'Trash Reports'},
+    {'key': 'cleanup_routes', 'label': 'Tracked Routes'},
+    {'key': 'cleanup_paths', 'label': 'Drawn Routes'},
+  ];
+  int currentTypeIndex = 0;
 
   final Stream<QuerySnapshot> _cleanupsStream = FirebaseFirestore.instance
       .collection('cleanups')
@@ -23,6 +30,18 @@ class _MapDrawerState extends State<MapDrawer> {
       .snapshots();
   final Stream<QuerySnapshot> _trashStream = FirebaseFirestore.instance
       .collection('trash')
+      .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .where('active', isEqualTo: true)
+      .orderBy('date', descending: true)
+      .snapshots();
+  final Stream<QuerySnapshot> _pathsStream = FirebaseFirestore.instance
+      .collection('cleanup_paths')
+      .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+      .where('active', isEqualTo: true)
+      .orderBy('date', descending: true)
+      .snapshots();
+  final Stream<QuerySnapshot> _routesStream = FirebaseFirestore.instance
+      .collection('cleanup_routes')
       .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
       .where('active', isEqualTo: true)
       .orderBy('date', descending: true)
@@ -49,12 +68,15 @@ class _MapDrawerState extends State<MapDrawer> {
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.swap_horiz),
-                label: Text(showCleanups ? 'Cleanups' : 'Trash Reports',
+                label: Text(types[currentTypeIndex]['label']!,
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 16)),
                 onPressed: () {
                   setState(() {
-                    showCleanups = !showCleanups;
+                    currentTypeIndex = currentTypeIndex + 1;
+                    if (currentTypeIndex >= types.length) {
+                      currentTypeIndex = 0;
+                    }
                   });
                 },
               ),
@@ -71,9 +93,9 @@ class _MapDrawerState extends State<MapDrawer> {
               ),
             ],
           ),
-          if (showCleanups) ...[
+          if (types[currentTypeIndex]['key'] == 'cleanups') ...[
             Container(
-              color: Colors.green,
+              color: Colors.blue,
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 child: Text(
@@ -96,7 +118,7 @@ class _MapDrawerState extends State<MapDrawer> {
                   );
                 } else {
                   return Container(
-                    color: Colors.green,
+                    color: Colors.blue,
                     child: ListView(
                       physics: const NeverScrollableScrollPhysics(),
                       primary: false,
@@ -119,7 +141,7 @@ class _MapDrawerState extends State<MapDrawer> {
               },
             ),
           ],
-          if (!showCleanups) ...[
+          if (types[currentTypeIndex]['key'] == 'trash') ...[
             Container(
               color: Colors.red,
               child: const Padding(
@@ -158,6 +180,104 @@ class _MapDrawerState extends State<MapDrawer> {
                           padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: SubmissionEditor(
                               data: data, id: document.id, type: 'trash'),
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+          if (types[currentTypeIndex]['key'] == 'cleanup_paths') ...[
+            Container(
+              color: Colors.green,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Text(
+                  'Your Cleanup Routes',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+            Container(
+              color: Colors.green,
+              child: StreamBuilder(
+                key: UniqueKey(),
+                stream: _pathsStream,
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: SelectableText('Error: ${snapshot.error}'),
+                    );
+                  } else {
+                    return ListView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      primary: false,
+                      key: UniqueKey(),
+                      shrinkWrap: true,
+                      children:
+                          snapshot.data!.docs.map((DocumentSnapshot document) {
+                        Map<String, dynamic> data =
+                            document.data()! as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: SubmissionEditor(
+                              data: data,
+                              id: document.id,
+                              type: 'cleanup_paths'),
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+          if (types[currentTypeIndex]['key'] == 'cleanup_routes') ...[
+            Container(
+              color: Colors.purple,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                child: Text(
+                  'Your Recorded Cleanup Routes',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+            Container(
+              color: Colors.purple,
+              child: StreamBuilder(
+                key: UniqueKey(),
+                stream: _routesStream,
+                builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(
+                      child: SelectableText('Error: ${snapshot.error}'),
+                    );
+                  } else {
+                    return ListView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      primary: false,
+                      key: UniqueKey(),
+                      shrinkWrap: true,
+                      children:
+                          snapshot.data!.docs.map((DocumentSnapshot document) {
+                        Map<String, dynamic> data =
+                            document.data()! as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: SubmissionEditor(
+                              data: data,
+                              id: document.id,
+                              type: 'cleanup_routes'),
                         );
                       }).toList(),
                     );

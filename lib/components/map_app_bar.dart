@@ -91,7 +91,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
               onPressed: () => {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => Profile()),
+                      MaterialPageRoute(builder: (context) => const Profile()),
                     )
                   },
               child: auth.currentUser == null

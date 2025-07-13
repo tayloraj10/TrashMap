@@ -18,6 +18,10 @@ timestampToString(Timestamp date) {
   return DateFormat('yyyy-MM-dd').format(date.toDate());
 }
 
+datetimeTimestampToString(Timestamp date) {
+  return DateFormat('yyyy-MM-dd hh:mm:ss a').format(date.toDate());
+}
+
 stringToDate(String date) {
   return DateTime.parse(date);
 }

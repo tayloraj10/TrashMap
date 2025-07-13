@@ -32,20 +32,40 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
   }
 
   setDefaultValues() {
-    _dateController.text = timestampToString(widget.data['date']);
-    _locationController.text = widget.data['location'];
+    if (widget.type == 'trash' || widget.type == 'cleanups') {
+      _locationController.text = widget.data['location'];
+      _dateController.text = timestampToString(widget.data['date']);
+    }
+    if (widget.type == 'cleanup_paths' || widget.type == 'cleanup_routes') {
+      _dateController.text = datetimeTimestampToString(widget.data['date']);
+      _locationController.text = widget.data['routeName'] ?? '';
+    }
     if (widget.type == 'cleanups') {
       _groupController.text = widget.data['group'];
-      _bagsController.text = widget.data['bags'].toString();
-      _weightController.text = widget.data['weight'].toString();
+    }
+    if (widget.type == 'cleanups' ||
+        widget.type == 'cleanup_paths' ||
+        widget.type == 'cleanup_routes') {
+      _bagsController.text = widget.data['bags']?.toString() ?? '';
+      _weightController.text = widget.data['weight']?.toString() ?? '';
     }
   }
 
   delete(String id) {
     FirebaseFirestore.instance.collection(widget.type).doc(id).delete();
-    String markerName = widget.type == 'cleanups' ? 'cleanup' : 'trash';
-    Provider.of<AppData>(context, listen: false)
-        .removeMarker(markerName + widget.id);
+    String markerName = widget.type == 'cleanups'
+        ? 'cleanup'
+        : widget.type == 'trash'
+            ? 'trash'
+            : '';
+    if (widget.type == 'cleanup_paths') {
+      Provider.of<AppData>(context, listen: false).removePathMarker(widget.id);
+    } else if (widget.type == 'cleanup_routes') {
+      Provider.of<AppData>(context, listen: false).removeRouteMarker(widget.id);
+    } else {
+      Provider.of<AppData>(context, listen: false)
+          .removeMarker(markerName + widget.id);
+    }
   }
 
   updateData(String id) {
@@ -61,6 +81,20 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
       FirebaseFirestore.instance.collection(widget.type).doc(id).update({
         'date': stringToDate(_dateController.text),
         'location': _locationController.text,
+      });
+    } else if (widget.type == 'cleanup_paths') {
+      FirebaseFirestore.instance.collection(widget.type).doc(id).update({
+        'routeName': _locationController.text,
+        'date': stringToDateTime(_dateController.text),
+        'bags': double.tryParse(_bagsController.text),
+        'weight': double.tryParse(_weightController.text),
+      });
+    } else if (widget.type == 'cleanup_routes') {
+      FirebaseFirestore.instance.collection(widget.type).doc(id).update({
+        'routeName': _locationController.text,
+        'date': stringToDateTime(_dateController.text),
+        'bags': double.tryParse(_bagsController.text),
+        'weight': double.tryParse(_weightController.text),
       });
     }
   }
@@ -104,8 +138,16 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                                             .getMapController
                                             .animateCamera(
                                                 CameraUpdate.newLatLngZoom(
-                                                    LatLng(widget.data['lat'],
-                                                        widget.data['lng']),
+                                                    LatLng(
+                                                      widget.data['lat'] ??
+                                                          widget.data[
+                                                                  'waypoints']
+                                                              [0]['lat'],
+                                                      widget.data['lng'] ??
+                                                          widget.data[
+                                                                  'waypoints']
+                                                              [0]['lng'],
+                                                    ),
                                                     18))
                                       },
                                   icon: const Icon(Icons.location_searching))
@@ -127,20 +169,31 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                                       style: TextStyle(color: Colors.red),
                                     )),
                               ),
-                              PropertyTile(
-                                  title: 'Change Date',
-                                  controller: _dateController,
-                                  keyboardType: TextInputType.datetime),
+                              if (widget.type == 'cleanups' ||
+                                  widget.type == 'trash')
+                                PropertyTile(
+                                    title: 'Change Date',
+                                    controller: _dateController,
+                                    keyboardType: TextInputType.datetime),
+                              if (widget.type == 'cleanup_paths' ||
+                                  widget.type == 'cleanup_routes')
+                                PropertyTile(
+                                    title: 'Change Date And Time',
+                                    controller: _dateController,
+                                    keyboardType: TextInputType.datetime),
                               PropertyTile(
                                 title: 'Location',
                                 controller: _locationController,
                               ),
                             ]),
-                            if (widget.type == 'cleanups')
+                            if (widget.type == 'cleanups' ||
+                                widget.type == 'cleanup_paths' ||
+                                widget.type == 'cleanup_routes')
                               TableRow(children: [
                                 PropertyTile(
                                   title: 'Group',
                                   controller: _groupController,
+                                  show: widget.type == 'cleanups',
                                 ),
                                 PropertyTile(
                                     title: '# of Bags',
@@ -177,19 +230,36 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                                                   listen: false)
                                               .getMapController
                                               .animateCamera(
-                                                  CameraUpdate.newLatLngZoom(
-                                                      LatLng(widget.data['lat'],
-                                                          widget.data['lng']),
-                                                      18))
+                                                CameraUpdate.newLatLngZoom(
+                                                    LatLng(
+                                                      widget.data['lat'] ??
+                                                          widget.data[
+                                                                  'waypoints']
+                                                              [0]['lat'],
+                                                      widget.data['lng'] ??
+                                                          widget.data[
+                                                                  'waypoints']
+                                                              [0]['lng'],
+                                                    ),
+                                                    18),
+                                              )
                                         },
                                     icon: const Icon(Icons.location_searching))
                               ],
                             ),
                           ),
-                          PropertyTile(
-                              title: 'Change Date',
-                              controller: _dateController,
-                              keyboardType: TextInputType.datetime),
+                          if (widget.type == 'cleanups' ||
+                              widget.type == 'trash')
+                            PropertyTile(
+                                title: 'Change Date',
+                                controller: _dateController,
+                                keyboardType: TextInputType.datetime),
+                          if (widget.type == 'cleanup_paths' ||
+                              widget.type == 'cleanup_routes')
+                            PropertyTile(
+                                title: 'Change Date And Time',
+                                controller: _dateController,
+                                keyboardType: TextInputType.datetime),
                           PropertyTile(
                             title: 'Location',
                             controller: _locationController,
@@ -199,12 +269,16 @@ class _SubmissionEditorState extends State<SubmissionEditor> {
                               title: 'Group',
                               controller: _groupController,
                             ),
-                          if (widget.type == 'cleanups')
+                          if (widget.type == 'cleanups' ||
+                              widget.type == 'cleanup_paths' ||
+                              widget.type == 'cleanup_routes')
                             PropertyTile(
                                 title: '# of Bags',
                                 controller: _bagsController,
                                 keyboardType: TextInputType.number),
-                          if (widget.type == 'cleanups')
+                          if (widget.type == 'cleanups' ||
+                              widget.type == 'cleanup_paths' ||
+                              widget.type == 'cleanup_routes')
                             PropertyTile(
                                 title: 'Pounds of Trash Cleaned',
                                 controller: _weightController,
