@@ -11,11 +11,21 @@ class MapText extends StatelessWidget {
       child: Align(
         alignment: Alignment.topCenter,
         child: Card(
+          elevation: 6,
+          color: Colors.white.withOpacity(0.9),
+          shape: RoundedRectangleBorder(
+            side: const BorderSide(color: Colors.blueAccent, width: 1.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          shadowColor: Colors.blueAccent.withOpacity(0.3),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8),
             child: Text(
               text,
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ),

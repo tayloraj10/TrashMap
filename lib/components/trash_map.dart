@@ -32,11 +32,43 @@ class _TrashMapState extends State<TrashMap> {
   bool addDraw = false;
   bool pinDropped = false;
   bool confirmingRoute = false;
+  bool showHelp = false;
+
+  Timer? _inactivityTimer;
+
+  void _resetInactivityTimer() {
+    _inactivityTimer?.cancel();
+    showHelp = false;
+    setState(() {});
+    _inactivityTimer = Timer(const Duration(seconds: 10), () {
+      if (!addClean &&
+          !addTrash &&
+          !addRoute &&
+          !addDraw &&
+          !pinDropped &&
+          !confirmingRoute) {
+        setState(() {
+          showHelp = true;
+        });
+      }
+      setState(() {
+        showHelp = true;
+      });
+    });
+  }
+
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
+    _resetInactivityTimer();
+  }
+
+  @override
+  void dispose() {
+    _inactivityTimer?.cancel();
+    super.dispose();
   }
 
   loadPosition() async {
@@ -138,6 +170,7 @@ class _TrashMapState extends State<TrashMap> {
       addRoute = false;
       addDraw = false;
       addTrash = false;
+      showHelp = false;
     });
     // if (auth.currentUser != null) {
     //   setState(() {
@@ -183,6 +216,7 @@ class _TrashMapState extends State<TrashMap> {
       addRoute = false;
       addDraw = false;
       addTrash = !addTrash;
+      showHelp = false;
     });
     // if (auth.currentUser != null) {
     //   setState(() {
@@ -219,6 +253,7 @@ class _TrashMapState extends State<TrashMap> {
       setState(() {
         addClean = false;
         addTrash = false;
+        showHelp = false;
         addRoute = !addRoute;
       });
       if (addRoute) {
@@ -235,6 +270,7 @@ class _TrashMapState extends State<TrashMap> {
         addClean = false;
         addTrash = false;
         addRoute = false;
+        showHelp = false;
         addDraw = !addDraw;
       });
     }
@@ -518,6 +554,8 @@ class _TrashMapState extends State<TrashMap> {
               });
               await loadPosition();
             }),
+        if (showHelp)
+          const MapText(text: "Click a button on the left to get started"),
         if (addClean || addTrash)
           MapText(
             text: addClean
@@ -588,7 +626,7 @@ class _TrashMapState extends State<TrashMap> {
               MapButton(
                 image: 'images/clean.png',
                 callback: clickClean,
-                tooltip: 'Add Cleanup',
+                tooltip: 'Add A Cleanup',
                 stroke: addClean,
               ),
               MapButton(
