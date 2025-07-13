@@ -77,12 +77,22 @@ class _LoadingPageState extends State<LoadingPage>
       const ImageConfiguration(size: Size(40, 40)),
       'images/trash_cleaned.png',
     );
+    BitmapDescriptor routeIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/tracking.png',
+    );
+    BitmapDescriptor drawIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(40, 40)),
+      'images/draw.png',
+    );
     if (mounted) {
       Provider.of<AppData>(context, listen: false).updateIcons({
         'current': currentLocationMarkerIcon,
         'cleanup': cleanMarkerIcon,
         'trash': trashMarkerIcon,
-        'trash_cleaned': trashCleanedMarkerIcon
+        'trash_cleaned': trashCleanedMarkerIcon,
+        'route': routeIcon,
+        'draw': drawIcon,
       });
     }
   }
@@ -216,7 +226,7 @@ class _LoadingPageState extends State<LoadingPage>
               markerId: MarkerId(
                   'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
               icon: Provider.of<AppData>(context, listen: false)
-                  .getIcons['cleanup'],
+                  .getIcons['route'],
               position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
               infoWindow: InfoWindow(
                 title: '${element.data()['routeName']}: Start Point',
@@ -229,7 +239,7 @@ class _LoadingPageState extends State<LoadingPage>
               markerId: MarkerId(
                   'waypoint${element.id}${waypoints.last['lat']}${waypoints.last['lng']}'),
               icon: Provider.of<AppData>(context, listen: false)
-                  .getIcons['cleanup'],
+                  .getIcons['route'],
               position: LatLng(waypoints.last['lat'], waypoints.last['lng']),
               infoWindow: InfoWindow(
                 title: '${element.data()['routeName']}: End Point',
@@ -267,8 +277,8 @@ class _LoadingPageState extends State<LoadingPage>
             Marker(
               markerId: MarkerId(
                   'waypoint${element.id}${waypoints.first['lat']}${waypoints.first['lng']}'),
-              icon: Provider.of<AppData>(context, listen: false)
-                  .getIcons['cleanup'],
+              icon:
+                  Provider.of<AppData>(context, listen: false).getIcons['draw'],
               position: LatLng(waypoints.first['lat'], waypoints.first['lng']),
               onTap: (() => showDialog(
                     context: context,
