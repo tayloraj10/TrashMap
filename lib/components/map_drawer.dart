@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:trash_map/components/submission_editor.dart';
+import 'package:trash_map/models/app_data.dart';
 
 class MapDrawer extends StatefulWidget {
   const MapDrawer({super.key});
@@ -55,7 +57,18 @@ class _MapDrawerState extends State<MapDrawer> {
                     showCleanups = !showCleanups;
                   });
                 },
-              )
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: IconButton(
+                  icon: Icon(Icons.cancel, color: Colors.red[400]),
+                  tooltip: 'Close',
+                  onPressed: () {
+                    Provider.of<AppData>(context, listen: false)
+                        .toggleShowPanel();
+                  },
+                ),
+              ),
             ],
           ),
           if (showCleanups) ...[

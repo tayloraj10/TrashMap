@@ -40,7 +40,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                   Provider.of<AppData>(context, listen: false)
                       .toggleShowPanel(),
                 },
-                icon: const Icon(Icons.menu),
+                icon: const Icon(Icons.assignment_turned_in),
                 tooltip: 'Manage Submissions',
               ),
             )
