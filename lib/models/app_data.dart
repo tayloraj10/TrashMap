@@ -64,7 +64,7 @@ class AppData extends ChangeNotifier {
     markers.removeWhere(
         (marker) => marker.markerId.value.contains('routepoint$markerID'));
     routes.removeWhere(
-        (route) => route.polylineId.value.contains('reouteold_$markerID'));
+        (route) => route.polylineId.value.contains('routeold_$markerID'));
     notifyListeners();
   }
 
