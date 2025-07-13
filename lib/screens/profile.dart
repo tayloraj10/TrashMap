@@ -4,8 +4,14 @@ import 'package:flutterfire_ui/auth.dart';
 import 'package:trash_map/firebase_options.dart';
 import 'package:trash_map/screens/map_page.dart';
 
-class Profile extends StatelessWidget {
-  Profile({super.key});
+class Profile extends StatefulWidget {
+  const Profile({super.key});
+
+  @override
+  State<Profile> createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
   final FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
