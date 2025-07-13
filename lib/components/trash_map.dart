@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'package:trash_map/components/clean_dialog.dart';
 import 'package:trash_map/components/map_button.dart';
 import 'package:trash_map/components/map_text.dart';
-import 'package:trash_map/components/marker_dialog.dart';
 import 'package:trash_map/components/path_dialog.dart';
 import 'package:trash_map/components/pin_confirmation.dart';
 import 'package:trash_map/components/route_dialog.dart';
@@ -449,80 +447,44 @@ class _TrashMapState extends State<TrashMap> {
   }
 
   successfulSubmit(String newID, String type) {
-    setState(() {
+    setState(() async {
       addClean = false;
       addTrash = false;
       addRoute = false;
       addDraw = false;
       pinDropped = false;
       confirmingRoute = false;
-      if (type == 'route') {
-        Provider.of<AppData>(context, listen: false).clearRoute();
+      if (mounted) {
+        if (type == 'route') {
+          Provider.of<AppData>(context, listen: false).clearRoute();
+          await Provider.of<AppData>(context, listen: false)
+              .loadCleanupRoutes(context: context);
+        }
       }
-      if (type == 'path') {
-        Provider.of<AppData>(context, listen: false).clearPaths();
+      if (mounted) {
+        if (type == 'path') {
+          Provider.of<AppData>(context, listen: false).clearPaths();
+          await Provider.of<AppData>(context, listen: false)
+              .loadCleanupPaths(context: context);
+        }
       }
-      if (type == 'cleanup') {
-        Provider.of<AppData>(context, listen: false).removeMarker('new_clean');
 
-        FirebaseFirestore.instance
-            .collection("cleanups")
-            .doc(newID)
-            .get()
-            .then((value) => {
-                  Provider.of<AppData>(context, listen: false).addMarker(
-                    Marker(
-                      markerId: MarkerId('cleanup${value.id}'),
-                      icon: Provider.of<AppData>(context, listen: false)
-                          .getIcons['cleanup'],
-                      position:
-                          LatLng(value.data()!['lat'], value.data()!['lng']),
-                      onTap: (() => showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              // Return widget tree containing the AlertDialog
-                              return PointerInterceptor(
-                                child: MarkerDialog(
-                                  data: value.data()!,
-                                  id: value.id,
-                                  type: 'Cleanup',
-                                ),
-                              );
-                            },
-                          )),
-                    ),
-                  )
-                });
+      if (type == 'cleanup') {
+        if (mounted) {
+          Provider.of<AppData>(context, listen: false)
+              .removeMarker('new_clean');
+
+          await Provider.of<AppData>(context, listen: false)
+              .loadCleanups(context: context, auth: auth);
+        }
       } else if (type == 'trash') {
-        Provider.of<AppData>(context, listen: false).removeMarker('new_trash');
-        FirebaseFirestore.instance
-            .collection("trash")
-            .doc(newID)
-            .get()
-            .then((value) => {
-                  Provider.of<AppData>(context, listen: false).addMarker(
-                    Marker(
-                      markerId: MarkerId('trash${value.id}'),
-                      icon: Provider.of<AppData>(context, listen: false)
-                          .getIcons['trash'],
-                      position:
-                          LatLng(value.data()!['lat'], value.data()!['lng']),
-                      onTap: (() => showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              // Return widget tree containing the AlertDialog
-                              return PointerInterceptor(
-                                child: MarkerDialog(
-                                  data: value.data()!,
-                                  id: value.id,
-                                  type: 'Trash Report',
-                                ),
-                              );
-                            },
-                          ).then((value) => trashCleaned(value))),
-                    ),
-                  )
-                });
+        if (mounted) {
+          Provider.of<AppData>(context, listen: false)
+              .removeMarker('new_trash');
+
+          await Provider.of<AppData>(context, listen: false)
+              .loadTrash(context: context, auth: auth);
+        }
       }
     });
   }
@@ -554,7 +516,13 @@ class _TrashMapState extends State<TrashMap> {
               });
               await loadPosition();
             }),
-        if (showHelp)
+        if (showHelp &&
+            !addClean &&
+            !addTrash &&
+            !addRoute &&
+            !addDraw &&
+            !pinDropped &&
+            !confirmingRoute)
           const MapText(text: "Click a button on the left to get started"),
         if (addClean || addTrash)
           MapText(
