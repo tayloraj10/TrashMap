@@ -47,7 +47,7 @@ class _StatsDialogState extends State<StatsDialog> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.cleaning_services_outlined,
+                        const Icon(Icons.cleaning_services_outlined,
                             color: Colors.green),
                         const SizedBox(width: 8),
                         const Text("Total Cleanups:"),
@@ -63,7 +63,7 @@ class _StatsDialogState extends State<StatsDialog> {
                     const Divider(),
                     Row(
                       children: [
-                        Icon(Icons.delete_outline, color: Colors.green),
+                        const Icon(Icons.delete_outline, color: Colors.green),
                         const SizedBox(width: 8),
                         const Text("Total Trash Reports:"),
                         const Spacer(),
@@ -78,7 +78,7 @@ class _StatsDialogState extends State<StatsDialog> {
                     const Divider(),
                     Row(
                       children: [
-                        Icon(Icons.scale, color: Colors.green),
+                        const Icon(Icons.scale, color: Colors.green),
                         const SizedBox(width: 8),
                         const Text("Total Weight:"),
                         const Spacer(),
@@ -93,7 +93,8 @@ class _StatsDialogState extends State<StatsDialog> {
                     const Divider(),
                     Row(
                       children: [
-                        Icon(Icons.shopping_bag_outlined, color: Colors.green),
+                        const Icon(Icons.shopping_bag_outlined,
+                            color: Colors.green),
                         const SizedBox(width: 8),
                         const Text("Total Bags:"),
                         const Spacer(),
@@ -134,7 +135,7 @@ class _StatsDialogState extends State<StatsDialog> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.cleaning_services_rounded,
+                          const Icon(Icons.cleaning_services_rounded,
                               color: Colors.blue),
                           const SizedBox(width: 8),
                           const Text("Your Cleanups:"),
@@ -150,7 +151,7 @@ class _StatsDialogState extends State<StatsDialog> {
                       const Divider(),
                       Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.blue),
+                          const Icon(Icons.delete, color: Colors.blue),
                           const SizedBox(width: 8),
                           const Text("Your Trash Reports:"),
                           const Spacer(),
@@ -165,7 +166,7 @@ class _StatsDialogState extends State<StatsDialog> {
                       const Divider(),
                       Row(
                         children: [
-                          Icon(Icons.scale, color: Colors.blue),
+                          const Icon(Icons.scale, color: Colors.blue),
                           const SizedBox(width: 8),
                           const Text("Your Weight:"),
                           const Spacer(),
@@ -180,7 +181,7 @@ class _StatsDialogState extends State<StatsDialog> {
                       const Divider(),
                       Row(
                         children: [
-                          Icon(Icons.shopping_bag, color: Colors.blue),
+                          const Icon(Icons.shopping_bag, color: Colors.blue),
                           const SizedBox(width: 8),
                           const Text("Your Bags:"),
                           const Spacer(),
