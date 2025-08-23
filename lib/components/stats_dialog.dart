@@ -78,21 +78,6 @@ class _StatsDialogState extends State<StatsDialog> {
                     const Divider(),
                     Row(
                       children: [
-                        const Icon(Icons.scale, color: Colors.green),
-                        const SizedBox(width: 8),
-                        const Text("Total Weight:"),
-                        const Spacer(),
-                        Text(
-                          Provider.of<AppData>(context, listen: false)
-                              .getPounds()
-                              .toString(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-                    Row(
-                      children: [
                         const Icon(Icons.shopping_bag_outlined,
                             color: Colors.green),
                         const SizedBox(width: 8),
@@ -101,6 +86,21 @@ class _StatsDialogState extends State<StatsDialog> {
                         Text(
                           Provider.of<AppData>(context, listen: false)
                               .getBags()
+                              .toString(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    Row(
+                      children: [
+                        const Icon(Icons.scale, color: Colors.green),
+                        const SizedBox(width: 8),
+                        const Text("Total Weight:"),
+                        const Spacer(),
+                        Text(
+                          Provider.of<AppData>(context, listen: false)
+                              .getPounds()
                               .toString(),
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -166,13 +166,13 @@ class _StatsDialogState extends State<StatsDialog> {
                       const Divider(),
                       Row(
                         children: [
-                          const Icon(Icons.scale, color: Colors.blue),
+                          const Icon(Icons.shopping_bag, color: Colors.blue),
                           const SizedBox(width: 8),
-                          const Text("Your Weight:"),
+                          const Text("Your Bags:"),
                           const Spacer(),
                           Text(
                             Provider.of<AppData>(context, listen: false)
-                                .getYourPounds()
+                                .getYourBags()
                                 .toString(),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
@@ -181,13 +181,13 @@ class _StatsDialogState extends State<StatsDialog> {
                       const Divider(),
                       Row(
                         children: [
-                          const Icon(Icons.shopping_bag, color: Colors.blue),
+                          const Icon(Icons.scale, color: Colors.blue),
                           const SizedBox(width: 8),
-                          const Text("Your Bags:"),
+                          const Text("Your Weight:"),
                           const Spacer(),
                           Text(
                             Provider.of<AppData>(context, listen: false)
-                                .getYourBags()
+                                .getYourPounds()
                                 .toString(),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
