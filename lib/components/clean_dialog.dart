@@ -28,6 +28,9 @@ class _CleanDialogState extends State<CleanDialog> {
   void initState() {
     super.initState();
     _dateController.text = dateToString(_selectedDate);
+    if (auth.currentUser?.displayName != null) {
+      _groupController.text = auth.currentUser!.displayName!;
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
