@@ -34,7 +34,8 @@ class _ProfileState extends State<Profile> {
               }),
             ],
             providerConfigs: const [
-              PhoneProviderConfiguration(),
+              // PhoneProviderConfiguration(),
+              // EmailProviderConfiguration(),
               GoogleProviderConfiguration(
                   clientId: DefaultFirebaseOptions.googleClientID)
             ],
