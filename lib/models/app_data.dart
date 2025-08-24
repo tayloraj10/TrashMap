@@ -309,13 +309,16 @@ class AppData extends ChangeNotifier {
     }
   }
 
+  int dataRange = 30 * 6;
+
 //loading function
   loadCleanups({context, auth}) async {
     await FirebaseFirestore.instance
         .collection("cleanups")
         .where('active', isEqualTo: true)
         // .where('date',
-        //     isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+        //     isGreaterThan:
+        // DateTime.now().subtract(const Duration(days: dataRange)))
         .get()
         .then((value) => {
               for (var element in value.docs)
@@ -368,7 +371,7 @@ class AppData extends ChangeNotifier {
     await FirebaseFirestore.instance
         .collection("trash")
         .where('date',
-            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+            isGreaterThan: DateTime.now().subtract(Duration(days: dataRange)))
         .get()
         .then((value) => {
               for (var element in value.docs)
@@ -434,7 +437,7 @@ class AppData extends ChangeNotifier {
     await FirebaseFirestore.instance
         .collection("cleanup_routes")
         .where('date',
-            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+            isGreaterThan: DateTime.now().subtract(Duration(days: dataRange)))
         .get()
         .then((value) {
       for (var element in value.docs) {
@@ -486,7 +489,7 @@ class AppData extends ChangeNotifier {
     await FirebaseFirestore.instance
         .collection("cleanup_paths")
         .where('date',
-            isGreaterThan: DateTime.now().subtract(const Duration(days: 180)))
+            isGreaterThan: DateTime.now().subtract(Duration(days: dataRange)))
         .get()
         .then((value) {
       for (var element in value.docs) {
