@@ -1,11 +1,11 @@
 {
-    "name": "trash_map",
-    "short_name": "trash_map",
+    "name": "Trash Map",
+    "short_name": "Trash Map",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#hexcode",
     "theme_color": "#hexcode",
-    "description": "A new Flutter project.",
+    "description": "The place to map and aid trash cleanups",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
