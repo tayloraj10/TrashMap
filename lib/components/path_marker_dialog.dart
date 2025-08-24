@@ -107,6 +107,7 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
           children: [
             if (widget.data['routeName'] != null)
               MarkerTextEdit(
+                  readOnly: widget.data['uid'] != auth.currentUser?.uid,
                   tooltip: "Name",
                   validation: (value) {
                     if (value!.isEmpty) {
@@ -118,6 +119,7 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
                   controller: _controller),
             if (widget.data['bags'] != null)
               MarkerTextEdit(
+                readOnly: widget.data['uid'] != auth.currentUser?.uid,
                 tooltip: "# of Bags Cleaned",
                 validation: (value) {
                   if (value!.isEmpty) {
@@ -131,6 +133,7 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
               ),
             if (widget.data['weight'] != null)
               MarkerTextEdit(
+                readOnly: widget.data['uid'] != auth.currentUser?.uid,
                 tooltip: "Pounds of Trash Cleaned",
                 validation: (value) {
                   if (value!.isEmpty) {
@@ -153,12 +156,13 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
                   }
                   return null;
                 }),
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: ElevatedButton(
-                  onPressed: () => _selectDate(context),
-                  child: const Text('Pick Date')),
-            ),
+            if (widget.data['uid'] == auth.currentUser?.uid)
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
+                child: ElevatedButton(
+                    onPressed: () => _selectDate(context),
+                    child: const Text('Pick Date')),
+              ),
           ],
         ),
       ),

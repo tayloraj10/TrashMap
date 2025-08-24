@@ -8,11 +8,13 @@ class MarkerTextEdit extends StatelessWidget {
   final TextEditingController controller;
   final Function validation;
   final List<TextInputFormatter>? inputFormatters;
+  final bool readOnly;
 
   const MarkerTextEdit(
       {super.key,
       required this.tooltip,
       this.style = const TextStyle(),
+      this.readOnly = false,
       required this.icon,
       required this.controller,
       required this.validation,
@@ -33,6 +35,7 @@ class MarkerTextEdit extends StatelessWidget {
             ),
             Expanded(
               child: TextFormField(
+                readOnly: readOnly,
                 decoration: InputDecoration(hintText: tooltip),
                 controller: controller,
                 style: style,
