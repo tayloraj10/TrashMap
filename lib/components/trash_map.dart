@@ -506,7 +506,7 @@ class _TrashMapState extends State<TrashMap> {
               clickMap(position);
             }),
             initialCameraPosition: _kStart,
-            // markers: _markers,
+            zoomControlsEnabled: false,
             markers: Provider.of<AppData>(context, listen: true).getMarkers,
             polylines: Provider.of<AppData>(context, listen: true).getRoutes,
             onMapCreated: (controller) async {
