@@ -198,8 +198,8 @@ class _StatsDialogState extends State<StatsDialog> {
                   ),
                 ),
               ),
-              const CleanupLeaderboard()
             ],
+            const CleanupLeaderboard()
           ],
         ),
       ),
