@@ -89,10 +89,12 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
           padding: const EdgeInsets.only(right: 8.0),
           child: ElevatedButton(
               onPressed: () => {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Profile()),
-                    )
+                    if (auth.currentUser != null)
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const Profile()),
+                      )
                   },
               child: auth.currentUser == null
                   ? GestureDetector(
