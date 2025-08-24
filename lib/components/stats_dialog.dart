@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trash_map/components/cleanup_leaderboard.dart';
 import 'package:trash_map/models/app_data.dart';
 
 class StatsDialog extends StatefulWidget {
@@ -17,7 +18,7 @@ class _StatsDialogState extends State<StatsDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text(
-        'Stats for Last 6 Months',
+        'Stats for the Last 6 Months',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
@@ -197,6 +198,7 @@ class _StatsDialogState extends State<StatsDialog> {
                   ),
                 ),
               ),
+              const CleanupLeaderboard()
             ],
           ],
         ),

@@ -177,6 +177,7 @@ class AppData extends ChangeNotifier {
   }
 
   //counts
+  Map<String, int> cleanupCountByGroup = {};
   int cleanupCount = 0;
   int trashCount = 0;
   int yourCleanupCount = 0;
@@ -187,6 +188,7 @@ class AppData extends ChangeNotifier {
   int bags = 0;
 
   void resetCounts() {
+    cleanupCountByGroup = {};
     cleanupCount = 0;
     trashCount = 0;
     yourCleanupCount = 0;
@@ -195,6 +197,23 @@ class AppData extends ChangeNotifier {
     bags = 0;
     yourPounds = 0;
     yourBags = 0;
+    notifyListeners();
+  }
+
+  void calculateCleanupCountByGroup(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> data) {
+    Map groupCounts = {};
+    for (var element in data) {
+      var data = element.data();
+      if (data['group'] != null && data['group'].toString().isNotEmpty) {
+        if (groupCounts.containsKey(data['group'])) {
+          groupCounts[data['group']] += data['bags'] ?? 0;
+        } else {
+          groupCounts[data['group']] = data['bags'] ?? 0;
+        }
+      }
+    }
+    cleanupCountByGroup = Map<String, int>.from(groupCounts);
     notifyListeners();
   }
 
@@ -240,6 +259,10 @@ class AppData extends ChangeNotifier {
 
   getCleanupCount() {
     return cleanupCount;
+  }
+
+  getCleanupCountByGroup() {
+    return cleanupCountByGroup;
   }
 
   getTrashCount() {
@@ -321,6 +344,7 @@ class AppData extends ChangeNotifier {
         // DateTime.now().subtract(const Duration(days: dataRange)))
         .get()
         .then((value) => {
+              calculateCleanupCountByGroup(value.docs),
               for (var element in value.docs)
                 {
                   Provider.of<AppData>(context, listen: false)
