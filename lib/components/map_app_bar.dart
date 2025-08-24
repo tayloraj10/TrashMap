@@ -57,26 +57,43 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
           Tooltip(
             message: 'View Stats',
             child: ElevatedButton(
-              onPressed: () => {
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              onPressed: () {
                 showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return const StatsDialog();
-                    })
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const StatsDialog();
+                  },
+                );
               },
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Stat(
-                      icon: Icons.cleaning_services_outlined,
-                      data: Provider.of<AppData>(context, listen: false)
-                          .getCleanupCount()
-                          .toString()),
-                  const SizedBox(width: 4),
+                    icon: Icons.cleaning_services_outlined,
+                    data: Provider.of<AppData>(context, listen: false)
+                        .getCleanupCount()
+                        .toString(),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(width: 8),
                   Stat(
-                      icon: Icons.delete_outline,
-                      data: Provider.of<AppData>(context, listen: false)
-                          .getTrashCount()
-                          .toString()),
+                    icon: Icons.delete_outline,
+                    data: Provider.of<AppData>(context, listen: false)
+                        .getTrashCount()
+                        .toString(),
+                  ),
                 ],
               ),
             ),
@@ -106,7 +123,10 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                                   builder: (context) => const Login()),
                             )
                           })
-                  : Text(getProfileName(auth))),
+                  : Tooltip(
+                      message: 'View Profile',
+                      child: Text(getProfileName(auth)),
+                    )),
         )
       ],
     );
