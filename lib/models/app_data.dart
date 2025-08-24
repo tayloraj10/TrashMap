@@ -485,7 +485,9 @@ class AppData extends ChangeNotifier {
     });
   }
 
+  BuildContext? originalContext;
   loadCleanupPaths({context}) async {
+    originalContext ??= context;
     await FirebaseFirestore.instance
         .collection("cleanup_paths")
         .where('date',
@@ -520,6 +522,9 @@ class AppData extends ChangeNotifier {
                       return PathMarkerDialog(
                         data: element.data(),
                         id: element.id,
+                        markerID:
+                            '${element.id}${waypoints.first['lat']}${waypoints.first['lng']}',
+                        context: originalContext ?? context,
                       );
                     },
                   )),

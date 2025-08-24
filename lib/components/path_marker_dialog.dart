@@ -2,13 +2,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:trash_map/components/attendee_avatar.dart';
 import 'package:trash_map/components/marker_text_edit.dart';
+import 'package:trash_map/models/app_data.dart';
 import 'package:trash_map/models/constants.dart';
 
 class PathMarkerDialog extends StatefulWidget {
   final Map data;
   final String id;
-  const PathMarkerDialog({super.key, required this.data, required this.id});
+  final String markerID;
+  final BuildContext context;
+  const PathMarkerDialog(
+      {super.key,
+      required this.data,
+      required this.id,
+      required this.markerID,
+      required this.context});
 
   @override
   State<PathMarkerDialog> createState() => _PathMarkerDialogState();
@@ -59,7 +69,13 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
             ? 0
             : double.tryParse(_weightController.text)!,
         'date': stringToDateTime(_dateController.text),
-      }).then((value) => {Navigator.pop(context, true)});
+      }).then((value) async => {
+                Provider.of<AppData>(context, listen: false)
+                    .removePathMarker(widget.markerID),
+                await Provider.of<AppData>(context, listen: false)
+                    .loadCleanupPaths(context: widget.context),
+                if (mounted) {Navigator.pop(context, true)}
+              });
     }
   }
 
@@ -92,6 +108,14 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
         _dateController.text = dateTimeToString(_selectedDate);
       });
     }
+  }
+
+  createUserInfo() {
+    return {
+      'email': auth.currentUser?.email,
+      'displayName': auth.currentUser?.displayName,
+      'photoURL': auth.currentUser?.photoURL,
+    };
   }
 
   @override
@@ -162,6 +186,146 @@ class _PathMarkerDialogState extends State<PathMarkerDialog> {
                 child: ElevatedButton(
                     onPressed: () => _selectDate(context),
                     child: const Text('Pick Date')),
+              ),
+            //RSVP Buttons
+            if (auth.currentUser?.uid != null &&
+                (widget.data['attendees'] == null ||
+                    !(widget.data['attendees']
+                        ?.containsKey(auth.currentUser?.uid))))
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade50,
+                    foregroundColor: Colors.green,
+                    elevation: 0,
+                    side: const BorderSide(color: Colors.green),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.event_available, color: Colors.green),
+                  label: const Text(
+                    'RSVP',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      if (widget.data['attendees'] == null) {
+                        widget.data['attendees'] = {
+                          auth.currentUser?.uid: createUserInfo()
+                        };
+                      } else {
+                        widget.data['attendees'][auth.currentUser?.uid] =
+                            createUserInfo();
+                      }
+                    });
+
+                    FirebaseFirestore.instance
+                        .collection("cleanup_paths")
+                        .doc(widget.id)
+                        .update({
+                      'attendees.${auth.currentUser?.uid}': createUserInfo()
+                    });
+
+                    Provider.of<AppData>(context, listen: false)
+                        .removePathMarker(widget.markerID);
+                    await Provider.of<AppData>(context, listen: false)
+                        .loadCleanupPaths(context: widget.context);
+                  },
+                ),
+              ),
+            if (auth.currentUser?.uid != null &&
+                (widget.data['attendees'] != null &&
+                    widget.data['attendees']
+                        .containsKey(auth.currentUser?.uid)))
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    elevation: 0,
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                  label: const Text(
+                    'Remove RSVP',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      (widget.data['attendees'] as Map)
+                          .remove(auth.currentUser?.uid);
+                    });
+
+                    FirebaseFirestore.instance
+                        .collection("cleanup_paths")
+                        .doc(widget.id)
+                        .update({
+                      'attendees.${auth.currentUser?.uid}': FieldValue.delete()
+                    });
+
+                    Provider.of<AppData>(context, listen: false)
+                        .removePathMarker(widget.markerID);
+                    await Provider.of<AppData>(context, listen: false)
+                        .loadCleanupPaths(context: widget.context);
+                  },
+                ),
+              ),
+
+            // Attendees List
+            if (auth.currentUser?.uid != null &&
+                widget.data['attendees'] != null &&
+                widget.data['attendees'].isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.group, size: 22),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Attendees (${widget.data['attendees'].length})',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(thickness: 1, height: 16),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 100,
+                      width: 250, // Set a max width for the attendee list
+                      child: SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: widget.data['attendees'].keys
+                              .map<Widget>((userID) {
+                            return AttendeeAvatar(
+                                userData: widget.data['attendees'][userID]);
+                          }).toList(),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
           ],
         ),

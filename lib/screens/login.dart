@@ -28,7 +28,7 @@ class _LoginState extends State<Login> {
             auth: auth,
             providerConfigs: const [
               EmailProviderConfiguration(),
-              PhoneProviderConfiguration(),
+              // PhoneProviderConfiguration(),
               GoogleProviderConfiguration(
                   clientId: DefaultFirebaseOptions.googleClientID)
             ],
