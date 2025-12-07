@@ -158,6 +158,86 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
               ),
             ),
+          if (pageName == zipPageName)
+            Builder(
+              builder: (context) {
+                final completed = Provider.of<AppData>(context, listen: true)
+                    .getCompletedZipCodes();
+                final total = Provider.of<AppData>(context, listen: true)
+                    .getTotalZipCodes();
+                final percent = total > 0
+                    ? ((completed / total) * 100).toStringAsFixed(1)
+                    : '0';
+                final isMobile = MediaQuery.of(context).size.width < 600;
+                if (isMobile) {
+                  // Mobile: show only completed/total
+                  return Tooltip(
+                    message: '$percent% completed',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(24),
+                        border:
+                            Border.all(color: Colors.blue.shade200, width: 1),
+                      ),
+                      child: Text(
+                        '$completed / $total',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  );
+                } else {
+                  // Desktop/tablet: show icon, completed/total, percent
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.blue.shade200, width: 1),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_pin,
+                            color: Colors.blue.shade700, size: 20),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$completed / $total',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '$percent%',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+            ),
           const Spacer(),
         ],
       ),

@@ -33,9 +33,10 @@ class AppData extends ChangeNotifier {
 
   Marker getMarker(String markerID) {
     try {
-      return markers.firstWhere((element) => element.markerId == MarkerId(markerID));
+      return markers
+          .firstWhere((element) => element.markerId == MarkerId(markerID));
     } catch (e) {
-      return const Marker(markerId: MarkerId('null'), position: LatLng(0,0));
+      return const Marker(markerId: MarkerId('null'), position: LatLng(0, 0));
     }
   }
 
@@ -168,7 +169,7 @@ class AppData extends ChangeNotifier {
   }
 
   //map controller
-  late GoogleMapController mapController;
+  GoogleMapController? mapController;
 
   get getMapController {
     return mapController;
@@ -190,6 +191,9 @@ class AppData extends ChangeNotifier {
   int pounds = 0;
   int bags = 0;
 
+  int totalZipCodes = 0;
+  int completedZipCodes = 0;
+
   void resetCounts() {
     cleanupCountByGroup = {};
     cleanupCount = 0;
@@ -200,6 +204,8 @@ class AppData extends ChangeNotifier {
     bags = 0;
     yourPounds = 0;
     yourBags = 0;
+    totalZipCodes = 0;
+    completedZipCodes = 0;
     notifyListeners();
   }
 
@@ -294,6 +300,24 @@ class AppData extends ChangeNotifier {
 
   getYourBags() {
     return yourBags;
+  }
+
+  void setTotalZipCodes(int total) {
+    totalZipCodes = total;
+    notifyListeners();
+  }
+
+  void setCompletedZipCodes(int completed) {
+    completedZipCodes = completed;
+    notifyListeners();
+  }
+
+  getTotalZipCodes() {
+    return totalZipCodes;
+  }
+
+  getCompletedZipCodes() {
+    return completedZipCodes;
   }
 
   Future<void> loadIcons({context, mounted}) async {

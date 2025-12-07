@@ -161,3 +161,63 @@ class CleanupWaypoint {
         lat: map['lat'], lng: map['lng'], number: map['number']);
   }
 }
+
+class ZipCodeSubmission {
+  final String zipCode;
+  final String? userID;
+  final String name;
+  final String? imageUrl;
+  final int? smallBags;
+  final int? largeBags;
+  final double? pounds;
+
+  ZipCodeSubmission({
+    required this.zipCode,
+    this.userID,
+    this.name = '',
+    this.imageUrl,
+    this.smallBags,
+    this.largeBags,
+    this.pounds,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'zipCode': zipCode,
+      'userID': userID,
+      'name': name,
+      'imageUrl': imageUrl,
+      'smallBags': smallBags,
+      'largeBags': largeBags,
+      'pounds': pounds,
+    };
+  }
+
+  factory ZipCodeSubmission.fromMap(Map<String, dynamic> map) {
+    return ZipCodeSubmission(
+      zipCode: map['zipCode'] ?? '',
+      userID: map['userID'] ?? '',
+      name: map['name'] ?? '',
+      imageUrl: map['imageUrl'],
+      smallBags: map['smallBags'],
+      largeBags: map['largeBags'],
+      pounds: (map['pounds'] is int)
+          ? (map['pounds'] as int).toDouble()
+          : (map['pounds']),
+    );
+  }
+
+  static ZipCodeSubmission fromJson(Map<String, dynamic> data) {
+    return ZipCodeSubmission(
+      zipCode: data['zipCode'] ?? '',
+      userID: data['userID'] ?? '',
+      name: data['name'] ?? '',
+      imageUrl: data['imageUrl'],
+      smallBags: data['smallBags'],
+      largeBags: data['largeBags'],
+      pounds: (data['pounds'] is int)
+          ? (data['pounds'] as int).toDouble()
+          : (data['pounds']),
+    );
+  }
+}

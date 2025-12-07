@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_map/components/zip_code_info.dart';
+import 'package:trash_map/components/zip_code_submission.dart';
 import 'package:trash_map/models/app_data.dart';
+import 'package:trash_map/models/models.dart';
+import 'dart:ui' as ui;
+import 'package:http/http.dart' as http;
 
 class PolygonData {
   final String id;
@@ -53,9 +58,11 @@ class ZipCodeMap extends StatefulWidget {
 class _ZipCodeMapState extends State<ZipCodeMap> {
   bool showHelp = false;
   List<PolygonData> allPolygons = [];
+  Set<Marker> markers = {};
   Set<Polygon> polygons = {};
   String selectedPolygonId = '';
   String hoveredPolygonId = '';
+  Map<String, ZipCodeSubmission> zipcodeSubmissions = {};
 
   late AppData appData;
   StreamSubscription<Position>? _positionSubscription;
@@ -77,6 +84,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await loadZipCodeSubmissions();
       await loadAllPolygonsData();
       await loadPosition();
     });
@@ -86,6 +94,21 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   void dispose() {
     _positionSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> loadZipCodeSubmissions() async {
+    final zipcodeSubmissionsData =
+        await FirebaseFirestore.instance.collection("zipcode_cleanups").get();
+    zipcodeSubmissions.clear();
+    for (var doc in zipcodeSubmissionsData.docs) {
+      final data = doc.data();
+      final ZipCodeSubmission submission = ZipCodeSubmission.fromJson(data);
+      zipcodeSubmissions[submission.zipCode] = submission;
+    }
+    if (mounted) {
+      Provider.of<AppData>(context, listen: false)
+          .setCompletedZipCodes(zipcodeSubmissions.length);
+    }
   }
 
   Future<void> loadAllPolygonsData() async {
@@ -107,6 +130,11 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
             allPolygons.add(PolygonData(id: id, points: points));
           }
         }
+      }
+      if (mounted) {
+        final uniqueZipCodes = allPolygons.map((p) => p.id).toSet().length;
+        Provider.of<AppData>(context, listen: false)
+            .setTotalZipCodes(uniqueZipCodes);
       }
 
       filterPolygonsInViewport();
@@ -179,12 +207,16 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   void zoomToMarkers() async {
     if (appData.getMapController == null) return;
 
-    // Approximate bounds for the contiguous United States
+    // Approximate bounds for Pennsylvania
     final bounds = LatLngBounds(
-      southwest: const LatLng(24.396308, -125.0), // Southernmost, Westernmost
-      northeast:
-          const LatLng(49.384358, -66.93457), // Northernmost, Easternmost
+      southwest: const LatLng(39.7198, -80.5199), // Southwest corner of PA
+      northeast: const LatLng(42.2696, -74.6895), // Northeast corner of PA
     );
+    // final bounds = LatLngBounds(
+    //   southwest: const LatLng(24.396308, -125.0), // Southernmost, Westernmost
+    //   northeast:
+    //       const LatLng(49.384358, -66.93457), // Northernmost, Easternmost
+    // );
 
     await appData.getMapController.animateCamera(
       CameraUpdate.newLatLngBounds(bounds, 40),
@@ -277,31 +309,36 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
 
     for (final p in allPolygons) {
       if (!p.intersects(bounds)) continue;
-
-      // Each PolygonData is a single polygon, but multiple PolygonData may share the same id (multipolygon)
+      final bool completed = zipcodeSubmissions.containsKey(p.id);
+      final String? imageUrl =
+          completed ? (zipcodeSubmissions[p.id]?.imageUrl) : null;
+      final String? name = completed ? (zipcodeSubmissions[p.id]?.name) : null;
       final bool isSelected = selectedPolygonId == p.id;
       final bool isHovered = hoveredPolygonId == p.id;
       final poly = Polygon(
         polygonId: PolygonId('${p.id}_${p.points.hashCode}'),
         points: p.points,
-        strokeWidth: 1,
+        strokeWidth: completed ? 2 : 1,
         strokeColor: isSelected
             ? Colors.yellow
             : isHovered
                 ? Colors.orange
-                : const Color(0xFF2196F3),
+                : completed
+                    ? Colors.green
+                    : const Color(0xFF2196F3),
         fillColor: isSelected
             ? Colors.yellow.withOpacity(0.4)
             : isHovered
                 ? Colors.orange.withOpacity(0.25)
-                : const Color(0x332196F3),
+                : zipcodeSubmissions.containsKey(p.id)
+                    ? Colors.green.withOpacity(0.25)
+                    : const Color(0x332196F3),
         consumeTapEvents: true,
         onTap: () {
           if (!mounted) return;
           setState(() {
             selectedPolygonId = p.id;
 
-            // Highlight all polygons with this id
             final highlightPolygons = allPolygons
                 .where((pd) => pd.id == p.id && pd.intersects(bounds))
                 .map((pd) => Polygon(
@@ -325,20 +362,55 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
           showDialog(
             context: context,
             builder: (_) => PointerInterceptor(
-              child: ZipCodeInfoDialog(zipCode: p.id),
+              child: completed
+                  ? ZipCodeInfoDialog(zipCodeData: zipcodeSubmissions[p.id]!)
+                  : ZipCodeSubmissionDialog(zipCode: p.id),
             ),
-          ).then((_) {
+          ).then((data) async {
             if (!mounted) return;
             setState(() {
-              // Remove highlight when dialog closes
               polygons = polygons
                   .where((poly) => !poly.polygonId.value.endsWith('_highlight'))
                   .toSet();
               selectedPolygonId = '';
             });
+            if (data != null && data['type'] == 'submission') {
+              await loadZipCodeSubmissions();
+              await loadAllPolygonsData();
+            }
           });
         },
       );
+
+      // If completed, add an image marker at the polygon's centroid
+      if (completed && p.points.isNotEmpty) {
+        // Calculate centroid
+        double lat = 0, lng = 0;
+        for (final pt in p.points) {
+          lat += pt.latitude;
+          lng += pt.longitude;
+        }
+        lat /= p.points.length;
+        lng /= p.points.length;
+
+        BitmapDescriptor? bitmap;
+        if (imageUrl != null && imageUrl.isNotEmpty) {
+          bitmap = await bitmapFromUrl(
+            url: imageUrl,
+            width: 40, // Smaller icon size
+          );
+          markers.add(Marker(
+            markerId: MarkerId('completed_${p.id}_${p.points.hashCode}'),
+            position: LatLng(lat, lng),
+            icon: bitmap,
+            anchor: const Offset(0.5, 0.5),
+            infoWindow: InfoWindow(
+              title: 'Claimed By $name',
+              snippet: 'Zip Code: ${p.id}',
+            ),
+          ));
+        }
+      }
 
       visiblePolygons.add(poly);
       polygonIdToPolygons.putIfAbsent(p.id, () => []).add(poly);
@@ -348,9 +420,20 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
     setState(() => polygons = visiblePolygons);
   }
 
+  Future<BitmapDescriptor> bitmapFromUrl(
+      {required String url, required int width}) async {
+    final response = await http.get(Uri.parse(url));
+    final codec =
+        await ui.instantiateImageCodec(response.bodyBytes, targetWidth: width);
+    final fi = await codec.getNextFrame();
+    final byteData = await fi.image.toByteData(format: ui.ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentMarker = appData.getMarker('current_location');
+    markers.add(currentMarker);
 
     return Stack(
       children: [
@@ -375,7 +458,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
           child: GoogleMap(
             initialCameraPosition: _kStart,
             zoomControlsEnabled: false,
-            markers: {currentMarker},
+            markers: markers,
             polygons: polygons,
             onTap: clickMap,
             onCameraIdle: filterPolygonsInViewport,
