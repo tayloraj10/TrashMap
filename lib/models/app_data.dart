@@ -32,8 +32,11 @@ class AppData extends ChangeNotifier {
   }
 
   Marker getMarker(String markerID) {
-    return markers
-        .firstWhere((element) => element.markerId == MarkerId(markerID));
+    try {
+      return markers.firstWhere((element) => element.markerId == MarkerId(markerID));
+    } catch (e) {
+      return const Marker(markerId: MarkerId('null'), position: LatLng(0,0));
+    }
   }
 
   Marker getPreviousMarker(int tickNumber) {

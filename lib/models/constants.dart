@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 const appName = 'Trash Map';
+const zipPageName = 'ZipCode Map';
 
 const primaryColor = Color.fromARGB(255, 15, 111, 18);
 

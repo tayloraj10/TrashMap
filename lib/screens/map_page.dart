@@ -6,6 +6,7 @@ import 'package:trash_map/components/map_app_bar.dart';
 import 'package:trash_map/components/map_drawer.dart';
 import 'package:trash_map/components/trash_map.dart';
 import 'package:trash_map/models/app_data.dart';
+import 'package:trash_map/models/constants.dart';
 
 class MapPage extends StatelessWidget {
   MapPage({super.key});
@@ -14,7 +15,7 @@ class MapPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MapAppBar(),
+      appBar: MapAppBar(pageName: appName,),
       body: SafeArea(
         child: Column(
           children: [

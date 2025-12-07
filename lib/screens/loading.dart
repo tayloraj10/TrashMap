@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_map/models/app_data.dart';
 import 'package:trash_map/models/constants.dart';
-import 'package:trash_map/screens/map_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trash_map/screens/zipcode_map_page.dart';
 
 class LoadingPage extends StatefulWidget {
   const LoadingPage({super.key});
@@ -63,7 +63,7 @@ class _LoadingPageState extends State<LoadingPage>
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MapPage(),
+          builder: (context) => ZipCodeMapPage(),
         ),
       );
     }
