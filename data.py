@@ -37,8 +37,8 @@ def validate_geojson(file_path, simple):
                 properties = feature.get('properties', {})
                 # Only process if STATEFP10 is '42'
                 # if properties.get('ZCTA5CE10') != '17202':
-                if properties.get('STATEFP10') != '42':
-                    continue
+                # if properties.get('STATEFP10') != '42':
+                #     continue
                 geometry = feature.get('geometry')
                 if not geometry:
                     continue

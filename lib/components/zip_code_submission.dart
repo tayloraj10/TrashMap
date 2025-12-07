@@ -42,6 +42,32 @@ class _ZipCodeSubmissionDialogState extends State<ZipCodeSubmissionDialog> {
 
   Future<void> submitCleanup(
       ZipCodeSubmission data, BuildContext context) async {
+    // Check if this zip code already exists in the collection
+    final existing = await FirebaseFirestore.instance
+        .collection("zipcode_cleanups")
+        .where('zipCode', isEqualTo: data.zipCode)
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      // Show error dialog if already claimed
+      if (!context.mounted) return;
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Already Claimed'),
+          content: const Text('This zip code has already been claimed.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     await FirebaseFirestore.instance
         .collection("zipcode_cleanups")
         .add(data.toMap())

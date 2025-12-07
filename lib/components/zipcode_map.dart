@@ -68,10 +68,10 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   StreamSubscription<Position>? _positionSubscription;
 
   static const CameraPosition _kStart = CameraPosition(
-    target: LatLng(40.7818, -77.6426), // Center of Pennsylvania
-    zoom: 8,
-    // target: LatLng(40.7798, -73.9676),
-    // zoom: 12,
+    // target: LatLng(40.7818, -77.6426), // Center of Pennsylvania
+    // zoom: 8,
+    target: LatLng(40.7798, -73.9676),
+    zoom: 13,
   );
 
   @override
@@ -208,15 +208,15 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
     if (appData.getMapController == null) return;
 
     // Approximate bounds for Pennsylvania
-    final bounds = LatLngBounds(
-      southwest: const LatLng(39.7198, -80.5199), // Southwest corner of PA
-      northeast: const LatLng(42.2696, -74.6895), // Northeast corner of PA
-    );
     // final bounds = LatLngBounds(
-    //   southwest: const LatLng(24.396308, -125.0), // Southernmost, Westernmost
-    //   northeast:
-    //       const LatLng(49.384358, -66.93457), // Northernmost, Easternmost
+    //   southwest: const LatLng(39.7198, -80.5199), // Southwest corner of PA
+    //   northeast: const LatLng(42.2696, -74.6895), // Northeast corner of PA
     // );
+    final bounds = LatLngBounds(
+      southwest: const LatLng(24.396308, -125.0), // Southernmost, Westernmost
+      northeast:
+          const LatLng(49.384358, -66.93457), // Northernmost, Easternmost
+    );
 
     await appData.getMapController.animateCamera(
       CameraUpdate.newLatLngBounds(bounds, 40),
@@ -453,7 +453,18 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
             final LatLng latLng =
                 await appData.getMapController.getLatLng(screenCoordinate);
 
-            _onHover(latLng);
+            // Only trigger hover at low zoom levels (e.g., zoom >= 12)
+            final zoom = await appData.getMapController.getZoomLevel();
+            if (zoom >= 12) {
+              _onHover(latLng);
+            } else {
+              if (hoveredPolygonId.isNotEmpty) {
+                setState(() {
+                  hoveredPolygonId = '';
+                });
+                // filterPolygonsInViewport();
+              }
+            }
           },
           child: GoogleMap(
             initialCameraPosition: _kStart,
