@@ -60,6 +60,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   List<PolygonData> allPolygons = [];
   Set<Marker> markers = {};
   Set<Polygon> polygons = {};
+  Set<Polygon> visiblePolygons = {};
   String selectedPolygonId = '';
   String hoveredPolygonId = '';
   Map<String, ZipCodeSubmission> zipcodeSubmissions = {};
@@ -86,6 +87,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await loadZipCodeSubmissions();
       await loadAllPolygonsData();
+      filterPolygonsInViewport();
       await loadPosition();
     });
   }
@@ -102,6 +104,10 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
     zipcodeSubmissions.clear();
     for (var doc in zipcodeSubmissionsData.docs) {
       final data = doc.data();
+      // Convert Firestore Timestamp to DateTime if necessary
+      if (data['date'] is Timestamp) {
+        data['date'] = (data['date'] as Timestamp).toDate();
+      }
       final ZipCodeSubmission submission = ZipCodeSubmission.fromJson(data);
       zipcodeSubmissions[submission.zipCode] = submission;
     }
@@ -114,7 +120,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   Future<void> loadAllPolygonsData() async {
     try {
       final data = await DefaultAssetBundle.of(context)
-          .loadString('data/zipcode_data_simple.json');
+          .loadString('assets/data/zipcode_data_simple.json');
       final List<dynamic> jsonList = json.decode(data);
 
       allPolygons = [];
@@ -282,9 +288,10 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
   void _onHover(LatLng position) {
     String foundId = '';
 
-    for (final poly in allPolygons) {
+    // Only check visible polygons now
+    for (final poly in visiblePolygons) {
       if (_pointInPolygon(position, poly.points)) {
-        foundId = poly.id;
+        foundId = poly.polygonId.value.split('_').first; // get the original id
         break;
       }
     }
@@ -304,17 +311,19 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
     if (!mounted || appData.getMapController == null) return;
     final bounds = await appData.getMapController.getVisibleRegion();
 
-    final visiblePolygons = <Polygon>{};
+    final newVisiblePolygons = <Polygon>{};
     final polygonIdToPolygons = <String, List<Polygon>>{};
 
     for (final p in allPolygons) {
       if (!p.intersects(bounds)) continue;
+
       final bool completed = zipcodeSubmissions.containsKey(p.id);
       final String? imageUrl =
           completed ? (zipcodeSubmissions[p.id]?.imageUrl) : null;
       final String? name = completed ? (zipcodeSubmissions[p.id]?.name) : null;
       final bool isSelected = selectedPolygonId == p.id;
       final bool isHovered = hoveredPolygonId == p.id;
+
       final poly = Polygon(
         polygonId: PolygonId('${p.id}_${p.points.hashCode}'),
         points: p.points,
@@ -330,15 +339,16 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
             ? Colors.yellow.withOpacity(0.4)
             : isHovered
                 ? Colors.orange.withOpacity(0.25)
-                : zipcodeSubmissions.containsKey(p.id)
+                : completed
                     ? Colors.green.withOpacity(0.25)
                     : const Color(0x332196F3),
         consumeTapEvents: true,
-        onTap: () {
+        onTap: () async {
           if (!mounted) return;
           setState(() {
             selectedPolygonId = p.id;
 
+            // Highlight all polygons with this id
             final highlightPolygons = allPolygons
                 .where((pd) => pd.id == p.id && pd.intersects(bounds))
                 .map((pd) => Polygon(
@@ -353,7 +363,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
                 .toSet();
 
             polygons = {
-              ...visiblePolygons.where(
+              ...newVisiblePolygons.where(
                   (poly) => !poly.polygonId.value.endsWith('_highlight')),
               ...highlightPolygons,
             };
@@ -383,8 +393,10 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
       );
 
       // If completed, add an image marker at the polygon's centroid
-      if (completed && p.points.isNotEmpty) {
-        // Calculate centroid
+      if (mounted &&
+          completed &&
+          p.points.isNotEmpty &&
+          MediaQuery.of(context).size.width > 600) {
         double lat = 0, lng = 0;
         for (final pt in p.points) {
           lat += pt.latitude;
@@ -393,12 +405,8 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
         lat /= p.points.length;
         lng /= p.points.length;
 
-        BitmapDescriptor? bitmap;
         if (imageUrl != null && imageUrl.isNotEmpty) {
-          bitmap = await bitmapFromUrl(
-            url: imageUrl,
-            width: 40, // Smaller icon size
-          );
+          final bitmap = await bitmapFromUrl(url: imageUrl, width: 40);
           markers.add(Marker(
             markerId: MarkerId('completed_${p.id}_${p.points.hashCode}'),
             position: LatLng(lat, lng),
@@ -412,12 +420,15 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
         }
       }
 
-      visiblePolygons.add(poly);
+      newVisiblePolygons.add(poly);
       polygonIdToPolygons.putIfAbsent(p.id, () => []).add(poly);
     }
 
     if (!mounted) return;
-    setState(() => polygons = visiblePolygons);
+    setState(() {
+      polygons = newVisiblePolygons;
+      visiblePolygons = newVisiblePolygons;
+    });
   }
 
   Future<BitmapDescriptor> bitmapFromUrl(
@@ -455,7 +466,7 @@ class _ZipCodeMapState extends State<ZipCodeMap> {
 
             // Only trigger hover at low zoom levels (e.g., zoom >= 12)
             final zoom = await appData.getMapController.getZoomLevel();
-            if (zoom >= 12) {
+            if (zoom >= 10) {
               _onHover(latLng);
             } else {
               if (hoveredPolygonId.isNotEmpty) {

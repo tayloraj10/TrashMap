@@ -118,8 +118,10 @@ class _ZipCodeSubmissionDialogState extends State<ZipCodeSubmissionDialog> {
                     child: TextFormField(
                       controller: imageUrlController,
                       decoration: const InputDecoration(
-                        labelText: 'Image URL',
-                      ),
+                          labelText: 'Image URL',
+                          hintText:
+                              "(Optional) A link to an image of your cleanup or your group's logo",
+                          hintMaxLines: 2),
                       maxLines: null,
                       validator: (value) {
                         if (value == null || value.isEmpty) return null;
@@ -225,6 +227,7 @@ class _ZipCodeSubmissionDialogState extends State<ZipCodeSubmissionDialog> {
                       pounds: poundsController.text.isEmpty
                           ? null
                           : double.tryParse(poundsController.text),
+                      date: DateTime.now(),
                     ),
                     context,
                   );

@@ -170,7 +170,7 @@ class ZipCodeSubmission {
   final int? smallBags;
   final int? largeBags;
   final double? pounds;
-
+  final DateTime date;
   ZipCodeSubmission({
     required this.zipCode,
     this.userID,
@@ -179,6 +179,7 @@ class ZipCodeSubmission {
     this.smallBags,
     this.largeBags,
     this.pounds,
+    required this.date,
   });
 
   Map<String, dynamic> toMap() {
@@ -190,6 +191,7 @@ class ZipCodeSubmission {
       'smallBags': smallBags,
       'largeBags': largeBags,
       'pounds': pounds,
+      'date': date,
     };
   }
 
@@ -204,6 +206,7 @@ class ZipCodeSubmission {
       pounds: (map['pounds'] is int)
           ? (map['pounds'] as int).toDouble()
           : (map['pounds']),
+      date: map['date'],
     );
   }
 
@@ -218,6 +221,7 @@ class ZipCodeSubmission {
       pounds: (data['pounds'] is int)
           ? (data['pounds'] as int).toDouble()
           : (data['pounds']),
+      date: data['date'],
     );
   }
 }

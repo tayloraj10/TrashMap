@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trash_map/components/stat.dart';
 import 'package:trash_map/components/stats_dialog.dart';
@@ -30,6 +31,8 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
     }
     return name;
   }
+
+  final formatter = NumberFormat('#,###');
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +186,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                             Border.all(color: Colors.blue.shade200, width: 1),
                       ),
                       child: Text(
-                        '$completed / $total',
+                        '${formatter.format(completed)} / ${formatter.format(total)}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -208,7 +211,7 @@ class MapAppBar extends StatelessWidget implements PreferredSizeWidget {
                             color: Colors.blue.shade700, size: 20),
                         const SizedBox(width: 6),
                         Text(
-                          '$completed / $total',
+                          '${formatter.format(completed)} / ${formatter.format(total)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

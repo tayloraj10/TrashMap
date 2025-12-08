@@ -109,6 +109,22 @@ class ZipCodeInfoDialog extends StatelessWidget {
                         ),
                       ],
                     ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Date:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "${zipCodeData.date.year}-${zipCodeData.date.month.toString().padLeft(2, '0')}-${zipCodeData.date.day.toString().padLeft(2, '0')}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ],
               )
             ]),
